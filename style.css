@@ -1,0 +1,483 @@
+/* Basic Reset */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Helvetica Neue', sans-serif; }
+
+body { 
+    color: #ffffff; 
+    position: relative; 
+    min-height: 100vh; 
+    overflow-x: hidden;
+    /* Using your nature background */
+    background-image: url('https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1200&q=80');
+    background-attachment: fixed;
+    background-position: center;
+    background-size: cover;
+}
+
+/* --- THE TEXT POP (TRACING) --- */
+.pop-text {
+    color: white;
+    text-shadow: 
+        -1px -1px 0 #000,  
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000,
+         0px 4px 10px rgba(0,0,0,0.8);
+}
+
+.nature-text {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(60px, 10vw, 90px); /* Larger, more dominant */
+    letter-spacing: 8px;
+    background: url('https://thumbs.dreamstime.com/b/green-landscape-12253717.jpg') center/cover;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+    filter: drop-shadow(0px 0px 1px rgba(0,0,0,1));
+}
+
+/* --- THE LAYOUT (UN-SQUEEZED) --- */
+.container { 
+    max-width: 1100px; /* Increased from 800px to stop the squeeze */
+    margin: 0 auto; 
+    padding: 60px 20px 200px; /* More bottom padding for footer clearance */
+    text-align: center; 
+}
+
+.sketch-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 100px; /* Huge gap between top and bottom rows to match sketch */
+    margin-top: 60px;
+}
+
+.grid-layout { 
+    display: flex; 
+    justify-content: space-evenly; /* Spreads items to the edges */
+    align-items: center;
+}
+
+.bottom-row { 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    gap: 80px; /* More space between Portfolio, Portrait, and About */
+}
+
+/* --- PHOTO STACKS (Bigger & Clearer) --- */
+.photo-stack { 
+    position: relative; 
+    width: 160px; /* Larger stacks */
+    height: 160px; 
+    margin: 0 auto 25px; 
+}
+
+.photo-stack img {
+    position: absolute; top: 0; left: 0; 
+    width: 140px; height: 140px; 
+    object-fit: cover;
+    border: 4px solid #fff; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4); 
+    border-radius: 4px;
+    transition: transform 0.4s cubic-bezier(0.2, 1, 0.3, 1);
+}
+
+/* Rotations */
+.pic-1 { transform: rotate(-15deg) translate(-10px, 10px); z-index: 1; }
+.pic-2 { transform: rotate(15deg) translate(10px, -5px); z-index: 2; }
+.pic-3 { transform: rotate(0deg); z-index: 3; }
+
+/* Your original hover values - now they will glide smoothly */
+.category-card:hover .pic-1 { transform: rotate(-25deg) translate(-20px, 20px); }
+.category-card:hover .pic-2 { transform: rotate(25deg) translate(20px, -15px); }
+.category-card:hover .pic-3 { transform: scale(1.08); } /* Subtle lift for the top photo */
+
+/* Buttons */
+.pill-btn {
+    background: rgba(255, 255, 255, 0.1); 
+    border: 1.5px solid #98fa9a; 
+    border-radius: 30px;
+    padding: 8px 30px; 
+    font-size: 18px; 
+    cursor: pointer; 
+    color: white;
+    backdrop-filter: blur(5px);
+    transition: 0.3s;
+}
+
+.pill-btn:hover { background: #98fa9a; color: #000; }
+
+/* Circle Image Styling */
+/* Ensure the link container is clean */
+.circle-link {
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+/* The actual Circle Button */
+.circle-btn {
+    position: relative;
+    width: 100px;  /* Adjust size as needed */
+    height: 100px; /* Must match width */
+    aspect-ratio: 1 / 1; 
+    border-radius: 50% !important; /* Force the circle shape */
+    overflow: hidden !important;   /* Force the image to clip into the circle */
+    border: 2px solid #98fa9a;     /* Your signature green */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #111;              /* Fallback color */
+}
+
+/* The Image inside the circle */
+.circle-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;            /* Prevents the image from squishing */
+    filter: brightness(0.5);
+    transition: 0.3s ease;
+    z-index: 1;
+}
+
+/* The "?" or "Photo" text */
+.circle-text {
+    position: relative;
+    z-index: 2;
+    color: #fff;
+    font-weight: 800;
+    font-size: 14px;
+    text-transform: uppercase;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+/* Hover effects */
+.circle-link:hover .circle-img {
+    filter: brightness(0.8);
+    transform: scale(1.1);
+}
+
+.circle-link:hover .circle-btn {
+    border-color: #fff;
+    box-shadow: 0 0 15px rgba(152, 250, 154, 0.3);
+}
+/* --- STICKY FOOTER --- */
+.sticky-footer {
+    position: fixed;
+    bottom: 5px; /* Squeezed to the very bottom */
+    left: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: transparent; /* No blurred layer at all */
+    z-index: 1000;
+}
+
+/* GLOBAL MASONRY/GRID SYSTEM */
+#portfolioGrid, 
+#gallery-container, 
+#photoInventory {
+    display: grid;
+    /* This creates the "Relatable Size" - min 150px, max 1fr */
+    /* On a phone, this naturally fits 2 side-by-side */
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* UNIFIED IMAGE STYLING */
+.grid-item img, 
+.gallery-item, 
+.admin-card img {
+    width: 100%;
+    aspect-ratio: 1 / 1; /* Makes them all perfect squares for a clean look */
+    object-fit: cover;   /* Prevents stretching */
+    border-radius: 8px;
+    display: block;
+    transition: transform 0.3s ease;
+    background-color: #111; /* Placeholder color while loading */
+}
+
+/* HOVER EFFECT FOR ALL GALLERIES */
+.grid-item img:hover, 
+.gallery-item:hover, 
+.admin-card img:hover {
+    transform: scale(1.02);
+    filter: brightness(1.1);
+}
+
+/* TABLET/DESKTOP ADJUSTMENT */
+@media (min-width: 768px) {
+    #portfolioGrid, #gallery-container, #photoInventory {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 25px;
+    }
+}
+
+.sticky-footer p {
+    font-size: 10px; /* Very small/squeezed text */
+    letter-spacing: 0.5px;
+    margin: 0;
+    line-height: 1.2;
+    /* Using the tracing pop effect */
+    color: white;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+
+/* Modal Overlay - Stays hidden until JS triggers it */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 2000; /* Higher than everything else */
+    left: 0; top: 0; 
+    width: 100%; height: 100%;
+    background-color: none;
+    backdrop-filter: transparent; /* Slight blur only when modal is open */
+}
+
+/* The Popup Box */
+.modal-content {
+    background: rgba(0, 0, 0, 0.2); /* Dark sleek box */
+    border: 1px solid #98fa9a; /* Matching your theme green */
+    margin: 25vh auto; 
+    backdrop-filter: blur(10px); /* Adds that glassy feel */
+    padding: 30px; 
+    border-radius: 20px;
+    width: 280px; 
+    text-align: center; 
+    position: relative;
+    box-shadow: 0 0 20px rgba(152, 250, 154, 0.2);
+}
+
+.close-btn { 
+    position: absolute; top: 10px; right: 15px; 
+    font-size: 24px; cursor: pointer; color: white; 
+}
+
+/* Quick Action Buttons */
+.contact-links { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+
+.contact-item {
+    text-decoration: none; 
+    color: #000; 
+    background-color: #98fa9a; /* Action color */
+    padding: 12px; 
+    border-radius: 12px; 
+    font-weight: bold;
+    font-size: 14px;
+    transition: transform 0.2s ease;
+}
+
+.contact-item:hover {
+    transform: scale(1.05);
+    background-color: #8709fd;
+}
+
+/* --- SIDE ORNAMENTS --- */
+.side-decoration { 
+    position: fixed; 
+    top: 30%; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    gap: 15px; 
+    z-index: 5; 
+}
+.side-decoration.left { left: 40px; }
+.side-decoration.right { right: 40px; }
+.oval { width: 12px; height: 100px; border-radius: 50px; opacity: 0.8; }
+.circle { width: 18px; height: 18px; border-radius: 50%; opacity: 0.8; }
+
+/* --- MOBILE RESPONSIVE --- */
+@media (max-width: 768px) {
+    .container { padding-top: 100px; }
+    .sketch-wrapper { gap: 50px; }
+    .grid-layout { flex-direction: row; flex-wrap: wrap; gap: 40px; }
+    .bottom-row { gap: 20px; }
+    .photo-stack { scale: 0.8; }
+    .side-decoration { display: none; } /* Hide on mobile to save space */
+}
+
+/* LIGHTBOX OVERLAY */
+.lightbox {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 10000;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    cursor: pointer;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.lightbox-content {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 4px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    object-fit: contain;
+    animation: zoomIn 0.3s ease;
+}
+
+@keyframes zoomIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    color: #fff;
+    font-size: 40px;
+    font-weight: bold;
+}
+
+/* Follow Link in Nav */
+/* Pinned Follow Button */
+.follow-link {
+    position: fixed;
+    top: 10px; /* Lowered from the top as requested */
+    right: 12px;
+    z-index: 9999; /* Keeps it above everything else */
+    
+    /* Styling */
+    color: #98fa9a;
+    font-weight: bold;
+    text-decoration: none;
+    border: 1px solid #98fa9a;
+    padding: 8px 15px;
+    border-radius: 50px;
+    background: rgba(0, 0, 0, 0.7); /* Added background so it's readable over images */
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.follow-link:hover {
+    background: #98fa9a;
+    color: #000;
+    transform: translateY(-2px);
+}
+
+/* Follow Modal Styling */
+/* 1. The Overlay: Almost transparent but heavy blur */
+.follow-modal {
+    display: none; 
+    position: fixed;
+    z-index: 10000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.3); /* Low opacity for that "feeling" */
+    backdrop-filter: transparent; /* This creates the glass effect on the site behind */
+    -webkit-backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+}
+
+/* 2. The Card: Light grey glassmorphism */
+.follow-content {
+    background: rgba(45, 45, 45, 0.8); /* Light grey translucent */
+    backdrop-filter: blur(10px);
+    padding: 40px;
+    border-radius: 28px; /* Slightly rounder for a premium feel */
+    text-align: center;
+    width: 90%;
+    max-width: 380px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* 3. The Close Button: Tucked in the corner */
+.close-follow {
+    position: absolute;
+    top: 15px; right: 20px;
+    font-size: 22px;
+    cursor: pointer;
+    color: #999;
+    transition: 0.3s;
+}
+.close-follow:hover { color: #fff; }
+
+/* 4. The Input: Swapped blue for dark glass */
+.follow-form input {
+    width: 100%;
+    padding: 14px;
+    margin: 20px 0;
+    background: rgba(0, 0, 0, 0.2); /* Deep translucent */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-radius: 12px;
+    outline: none;
+    box-sizing: border-box; /* Important for alignment */
+    text-align: center;
+    font-size: 16px;
+}
+
+.follow-form input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.follow-form input:focus {
+    border-color: #98fa9a;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+/* 5. The Button: Signature Green */
+#confirmFollowBtn {
+    background: #98fa9a;
+    color: #000;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-weight: 800;
+    cursor: pointer;
+    width: 100%;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: transform 0.2s, background 0.2s;
+}
+
+#confirmFollowBtn:hover {
+    transform: translateY(-2px);
+    background: #76e078;
+}
+/* Heart Button Styling */
+.heart-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.7); /* White/Transparentish */
+    cursor: pointer;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    transition: transform 0.3s, color 0.3s;
+    user-select: none;
+    z-index: 5;
+}
+
+.heart-btn.active {
+    color: #ff4d4d; /* Bright Red */
+    transform: scale(1.2);
+}
+
+.heart-btn:hover {
+    transform: scale(1.3);
+    color: #fff;
+}
+
+/* Flying Animation */
+@keyframes fly {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -200%) scale(1.5) rotate(20deg); opacity: 0; }
+}

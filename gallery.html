@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery | PHESTY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,900;1,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="portfolio.css"> 
+</head>
+<body class="portfolio-page">
+
+<a href="#" class="follow-link" id="openFollowModal">Follow</a>
+
+    <nav class="portfolio-nav">
+        <a href="index.html" class="back-link pop-text">← Home</a>
+        <h1 class="nature-text" id="category-title">Gallery</h1>
+    </nav>
+
+    <main class="portfolio-container">
+        <div class="masonry-grid" id="gallery-container">
+            </div>
+    </main>
+
+    <footer class="sticky-footer">
+        <p class="pop-text">@phesty<sup>TM</sup> &copy; 2026</p>
+    </footer>
+<div id="followModal" class="follow-modal">
+    <div class="follow-content">
+        <span class="close-follow">&times;</span>
+        <h2 class="pop-text">Join the Journey</h2>
+        <p>Drop name to be the first to see the new captures.</p>
+        
+        <div class="follow-form">
+            <input type="text" id="fanName" placeholder="What's your name?" required>
+            <button id="confirmFollowBtn">Stay Tuned</button>
+        </div>
+    </div>
+</div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+</body>
+</html>

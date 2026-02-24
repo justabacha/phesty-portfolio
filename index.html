@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHESTY | Just lens and light</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,900;1,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+   <a href="#" class="follow-link" id="openFollowModal">Follow</a>
+
+    <div class="side-decoration left">
+        <div class="oval"></div><div class="circle"></div><div class="oval"></div>
+    </div>
+    <div class="side-decoration right">
+        <div class="oval"></div><div class="circle"></div><div class="oval"></div>
+    </div>
+
+    <main class="container">
+        <header>
+            <h1 class="nature-text">PHESTY STUDIO</h1>
+            <p class="subtitle pop-text">Just lens and light</p>
+            <h2 class="hero-text pop-text">Capturing Moment</h2>
+        </header>
+
+        <div class="sketch-wrapper">
+            <section class="grid-layout top-row">
+                <a href="gallery.html?type=street" class="category-card">
+                    <div class="photo-stack">
+                        <img src="https://via.placeholder.com/150" alt="Street 1" class="pic-1">
+                        <img src="https://via.placeholder.com/150" alt="Street 2" class="pic-2">
+                        <img src="https://via.placeholder.com/150" alt="Street 3" class="pic-3">
+                    </div>
+                    <button class="pill-btn">Street</button>
+                </a>
+
+                <a href="gallery.html?type=nature" class="category-card">
+                    <div class="photo-stack">
+                        <img src="https://via.placeholder.com/150" alt="Nature 1" class="pic-1">
+                        <img src="https://via.placeholder.com/150" alt="Nature 2" class="pic-2">
+                        <img src="https://via.placeholder.com/150" alt="Nature 3" class="pic-3">
+                    </div>
+                    <button class="pill-btn">Nature</button>
+                </a>
+            </section>
+
+           <section class="bottom-row center-stagger">
+    <a href="portfolio.html" class="circle-link side-item">
+        <div class="circle-btn">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTS4AQRIwb549j0o2ilacODyr3sJzrVcjOIQ&s" alt="Portfolio Preview" class="circle-img">
+            <span class="circle-text"></span>
+        </div>
+        <span class="pop-text">Portfolio</span>
+    </a>
+
+    <a href="gallery.html?type=portrait" class="category-card portrait-center">
+        <div class="photo-stack">
+            <img src="https://via.placeholder.com/150" alt="Portrait 1" class="pic-1">
+            <img src="https://via.placeholder.com/150" alt="Portrait 2" class="pic-2">
+            <img src="https://via.placeholder.com/150" alt="Portrait 3" class="pic-3">
+        </div>
+        <button class="pill-btn">Portrait</button>
+    </a>
+
+    <a href="about.html" class="circle-link side-item">
+        <div class="circle-btn">
+            <img src="myphoto.jpg" alt="About Preview" class="circle-img">
+            <span class="circle-text"></span>
+        </div>
+        <span class="pop-text">About</span>
+    </a>
+</section>
+        </div>
+
+        <footer class="sticky-footer">
+            <button id="contactBtn" class="contact-trigger pop-text">📞 Contact</button>
+            <p class="pop-text">@phesty<sup>TM</sup></p>
+            <p class="pop-text">All Right Reserved &copy;2026</p>
+        </footer>
+    </main>
+
+    <div id="contactModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h3 class="pop-text">Get in Touch</h3>
+        <div class="contact-links">
+            <a href="mailto:its.phestone@gmail.com?subject=Photography Inquiry" class="contact-item">
+                📧 Email Me
+            </a>
+            <a href="tel:+254708671172" class="contact-item">
+                📱 Call Me
+            </a>
+            <a href="https://wa.me/254708671172" target="_blank" class="contact-item">
+                <i class="fab fa-whatsapp"></i> WhatsApp
+            </a>
+        </div>
+    </div>
+</div>
+<div id="followModal" class="follow-modal">
+    <div class="follow-content">
+        <span class="close-follow">&times;</span>
+        <h2 class="pop-text">Join the Journey</h2>
+        <p>Drop name to be the first to see the new captures.</p>
+        
+        <div class="follow-form">
+            <input type="text" id="fanName" placeholder="What's your name?" required>
+            <button id="confirmFollowBtn">Stay Tuned</button>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="script.js"></script>
+</body>
+</html>

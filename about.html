@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | PHESTY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,900;1,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"> <link rel="stylesheet" href="about.css"> </head>
+<body class="about-page">
+
+    <a href="#" class="follow-link" id="openFollowModal">Follow</a>
+
+    <a href="index.html" class="back-btn pop-text">Back</a>
+
+    <main class="content-wrapper">
+        <header class="profile-header">
+            <div class="profile-circle">
+                <img src="myphoto.jpg" alt="Phestone">
+            </div>
+            <div class="profile-info">
+                <h1 class="profile-name">phestone</h1>
+                <p class="profile-tagline">Just lens and light</p>
+            </div>
+        </header>
+
+        <section class="about-bio">
+            <div class="bio-text">
+                <p>Based in Eldoret City, Kenya, I’m an Actuarial Science student at the University of Eldoret who finds balance through the lens of a Canon Rebel T6.</p>
+                <p>My work is a study of atmosphere—from the sprawling stillness of landscapes to the raw, rhythmic energy of the streets. I believe in capturing the moment exactly as it is: just lens and light.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="sticky-footer">
+        <p class="pop-text">@phesty<sup>TM</sup></p>
+        <p class="pop-text">All Right Reserved &copy;2026</p>
+    </footer>
+<div id="followModal" class="follow-modal">
+    <div class="follow-content">
+        <span class="close-follow">&times;</span>
+        <h2 class="pop-text">Join the Journey</h2>
+        <p>Drop name to be the first to see the new captures.</p>
+        
+        <div class="follow-form">
+            <input type="text" id="fanName" placeholder="What's your name?" required>
+            <button id="confirmFollowBtn">Stay Tuned</button>
+        </div>
+    </div>
+</div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHESTY Admin | Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+    <div id="loginSection" class="admin-container login-box">
+        <h2 class="nature-text">Admin Entry</h2>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Password" oninput="checkPasswordStrength()">
+        <div class="auth-actions">
+            <button id="authBtn" class="admin-btn disabled-btn" onclick="handleLogin()">Sign In</button>
+            <button class="signup-link" onclick="handleSignUp()">Create Admin Account</button>
+        </div>
+    </div>
+
+    <main id="dashboardSection" class="dashboard-wrapper hidden">
+        <header class="dash-header">
+            <h1 class="nature-text">Control Center</h1>
+            <div class="header-actions">
+                <button class="add-btn" onclick="toggleUploadModal(true)">+ Add New Photo</button>
+                </div>
+        </header>
+
+        <section class="insights-bar">
+            <div class="insight-card">
+                <h3>Followers</h3>
+                <div id="followerList" class="follower-scroll">
+                    <p class="muted">Loading fans...</p>
+                </div>
+            </div>
+        </section>
+
+        <h2 class="section-title">Photo Inventory</h2>
+        <div id="photoInventory" class="admin-grid">
+            </div>
+    </main>
+
+    <div id="uploadModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <span class="close-modal" onclick="toggleUploadModal(false)">&times;</span>
+            <h3 class="pop-text">Upload to Gallery</h3>
+            
+            <label>Category</label>
+            <select id="categorySelect">
+                <option value="street">Street</option>
+                <option value="nature">Nature</option>
+                <option value="portrait">Portrait</option>
+            </select>
+
+            <label>File (Up to 6)</label>
+            <input type="file" id="fileInput" accept="image/*" multiple>
+            
+            <button class="admin-btn active-btn" id="uploadBtn" onclick="handleUpload()">Begin Upload</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
