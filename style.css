@@ -1,4 +1,8 @@
 /* Basic Reset */
+* {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Helvetica Neue', sans-serif; }
 
 body { 
@@ -8,9 +12,10 @@ body {
     overflow-x: hidden;
     /* Using your nature background */
     background-image: url('https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1200&q=80');
-    background-attachment: fixed;
+    background-attachment: scroll !important;
     background-position: center;
     background-size: cover;
+    background-repeat: no-repeat;
 }
 
 /* --- THE TEXT POP (TRACING) --- */
@@ -524,5 +529,22 @@ body {
         grid-template-columns: repeat(2, 1fr); /* 2 photos per row instead of 3 or 4 */
         gap: 10px;
         padding: 10px;
+    }
+}
+@media (max-width: 600px) {
+    /* Target your gallery container */
+    .gallery-grid, .portfolio-grid, .photo-container { 
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important; /* Forces 2 photos side-by-side */
+        gap: 12px !important;
+        padding: 15px !important;
+    }
+
+    /* Ensure images fill their new smaller boxes */
+    .gallery-grid img, .portfolio-grid img {
+        width: 100% !important;
+        height: 200px !important; /* Give them a set height for a clean look */
+        object-fit: cover !important;
+        border-radius: 12px;
     }
 }
