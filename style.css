@@ -481,3 +481,48 @@ body {
     0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
     100% { transform: translate(-50%, -200%) scale(1.5) rotate(20deg); opacity: 0; }
 }
+/* --- MOBILE RESPONSIVE FIX --- */
+@media (max-width: 600px) {
+    /* 1. Make the main row stay horizontal but smaller */
+    .bottom-row.center-stagger {
+        display: flex;
+        flex-direction: row; /* Force side-by-side */
+        justify-content: space-around;
+        align-items: center;
+        gap: 5px;
+        padding: 0 10px;
+    }
+
+    /* 2. Shrink the Portfolio and About circles so they fit */
+    .circle-btn {
+        width: 70px !important; /* Smaller for mobile */
+        height: 70px !important;
+        border-width: 1.5px;
+    }
+
+    .circle-text {
+        font-size: 10px; /* Smaller text inside circles */
+    }
+
+    .pop-text {
+        font-size: 11px;
+    }
+
+    /* 3. Resize the center Portrait/Street stacks */
+    .category-card {
+        width: 120px; /* Narrower stack */
+        transform: scale(0.9); /* Slight shrink to ensure fit */
+    }
+
+    .photo-stack img {
+        width: 100px;
+        height: 130px;
+    }
+
+    /* 4. Fix the Gallery Grid (for the portfolio page) */
+    .gallery-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 photos per row instead of 3 or 4 */
+        gap: 10px;
+        padding: 10px;
+    }
+}
