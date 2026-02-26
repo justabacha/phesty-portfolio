@@ -175,23 +175,29 @@ function handlePhotoClick(e, src, photoId) {
 }
 
 async function triggerLike(photoId, event) {
-    // Only allow liking once per session/user to prevent spamming
-    if (localStorage.getItem(`liked_${photoId}`) === 'true') return;
-
+   // Check if already liked to prevent double database calls, but we still allow the UI to "pop"
+    const alreadyLiked = localStorage.getItem(`liked_${photoId}`) === 'true';
     // 1. Mark as liked locally
     localStorage.setItem(`liked_${photoId}`, 'true');
     
-    // 2. Change heart color to red
+// 2. Change heart color to red IMMEDIATELY
     const heartEl = document.getElementById(`heart-${photoId}`);
-    if (heartEl) heartEl.classList.add('active');
+    if (heartEl) {
+        heartEl.classList.add('active');
+        heartEl.style.color = '#ff4d4d'; // Instant red
+        heartEl.style.transform = 'scale(1.4)'; // Instant pop
+        setTimeout(() => heartEl.style.transform = 'scale(1)', 200);
+    }
 
-    // 3. Animation
+    // 3. Show the burst animation
     showHeartAnimation(event.pageX, event.pageY);
 
-    // 4. Update Database
-    await _supabase.rpc('increment_likes', { row_id: photoId });
+    // 4. Update Database only if they haven't liked it before
+    if (!alreadyLiked) {
+        localStorage.setItem(`liked_${photoId}`, 'true');
+        await _supabase.rpc('increment_likes', { row_id: photoId });
+    }
 }
-
 function showHeartAnimation(x, y) {
     // Create multiple hearts for a "burst" effect
     for (let i = 0; i < 6; i++) {
