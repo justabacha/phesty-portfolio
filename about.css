@@ -1,8 +1,15 @@
 /* Full Screen Background Masterpiece */
+/* This targets the fixed layer we created in style.css */
+.about-page::before {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)), 
+                      url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTS4AQRIwb549j0o2ilacODyr3sJzrVcjOIQ&s') !important;
+    background-attachment: scroll; /* Keeps it stable on mobile */
+}
+
+/* Ensure the about page itself doesn't try to fight for a second background */
 .about-page {
-    background: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)), 
-                url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTS4AQRIwb549j0o2ilacODyr3sJzrVcjOIQ&s') center/cover no-repeat fixed !important;
-    text-align: left !important; /* Overriding body text-align center */
+    background: none !important;
+    text-align: left !important;
 }
 
 .content-wrapper {
