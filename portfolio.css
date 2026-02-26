@@ -1,11 +1,12 @@
-/* --- 1. BASE STYLES (Mobile First) --- */
+/* --- 1. BASE STYLES (Mobile First / Priority) --- */
 .portfolio-page {
     background-color: #0a0a0a;
     padding-bottom: 60px;
+    margin: 0;
     -webkit-tap-highlight-color: transparent;
 }
 
-/* Fixed Home Button - Stay pinned for the thumb */
+/* Home Button - Floating on Mobile */
 .back-link {
     position: fixed;
     top: 20px;
@@ -14,81 +15,88 @@
     text-decoration: none;
     font-size: 12px;
     background: rgba(0, 0, 0, 0.7);
-    padding: 10px 18px;
+    padding: 8px 16px;
     border-radius: 50px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     color: #fff !important;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 600;
+    font-weight: bold;
 }
 
 .portfolio-nav {
-    padding: 80px 20px 30px; /* Space for the fixed button */
+    padding: 80px 20px 20px;
     text-align: center;
 }
 
-.portfolio-nav h1 {
+.nature-text {
     font-size: 24px;
     letter-spacing: 2px;
-    text-transform: uppercase;
+    color: #fff;
+    margin: 0;
 }
 
-/* The Grid - 2 Columns by Default (Phone) */
+/* THE GRID: Forced 2-Column for Mobile */
 .portfolio-container {
-    padding: 0 15px;
+    width: 100%;
+    padding: 0 10px;
+    box-sizing: border-box;
 }
 
 .masonry-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Force 2 side-by-side */
-    gap: 12px;
+    grid-template-columns: repeat(2, 1fr); /* 2 equal columns */
+    gap: 10px;
 }
 
 .grid-item {
     background: #111;
-    overflow: hidden;
     border-radius: 12px;
+    overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.05);
-    aspect-ratio: 1 / 1.2; /* Keeps a consistent "portrait" feel on the grid */
+    aspect-ratio: 1 / 1.4; /* Gives that uniform professional look */
 }
 
 .grid-item img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Stops photos from stretching */
+    object-fit: cover;
     display: block;
-    filter: grayscale(10%);
-    transition: transform 0.5s ease;
+    filter: grayscale(20%);
+    transition: filter 0.3s ease, transform 0.5s ease;
 }
 
-/* Interaction for touch/hover */
 .grid-item:active img {
+    filter: grayscale(0%);
     transform: scale(1.05);
 }
 
-/* --- 2. LAPTOP DEPENDENCY (Desktop Overrides) --- */
+/* --- 2. LAPTOP / DESKTOP DEPENDENCY --- */
 @media (min-width: 1024px) {
-    .portfolio-nav { padding: 100px 20px 50px; }
-    
     .portfolio-container {
         max-width: 1200px;
         margin: 0 auto;
+        padding: 0 40px;
     }
 
     .masonry-grid {
         grid-template-columns: repeat(3, 1fr); /* 3 columns on laptop */
-        gap: 25px;
+        gap: 20px;
     }
 
     .grid-item {
-        aspect-ratio: auto; /* Let images be their natural height on desktop */
-        height: 400px;
+        aspect-ratio: auto; /* Return to natural heights on big screens */
+        height: 450px;
     }
 
     .grid-item:hover img {
         filter: grayscale(0%);
         transform: scale(1.03);
+    }
+
+    .back-link {
+        top: 30px;
+        left: 30px;
+        font-size: 14px;
     }
 }
