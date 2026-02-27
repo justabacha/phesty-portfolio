@@ -2,8 +2,27 @@ const SUPABASE_URL = 'https://lrlfnfuymbjdxixlttmk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_jddfRqXC9UkFaUOQ0n2O-Q_slOWTPIo'; 
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-document.addEventListener('DOMContentLoaded', fetchBookings);
+// 1. START THE ENGINE
+document.addEventListener('DOMContentLoaded', () => {
+    fetchBookings();
+    setupRealtime(); // This is the magic for instant updates
+});
 
+// 2. REALTIME LISTENER (No Refresh Needed)
+function setupRealtime() {
+    _supabase
+        .channel('schema-db-changes')
+        .on('postgres_changes', 
+            { event: '*', schema: 'public', table: 'bookings' }, 
+            (payload) => {
+                console.log('Change received!', payload);
+                fetchBookings(); // Automatically re-renders everything instantly
+            }
+        )
+        .subscribe();
+}
+
+// 3. FETCH & SORT
 async function fetchBookings() {
     const { data, error } = await _supabase
         .from('bookings')
@@ -15,18 +34,13 @@ async function fetchBookings() {
         return;
     }
 
-    // 1. Render the "Commits" (Busy Days) at the top
     renderCommits(data.filter(b => b.status === 'confirmed'));
-    
-    // 2. Render the full interactive ledger
     renderLedger(data);
 }
 
-// THE BUSY DAYS LAYER (Vertical List at Top)
+// 4. THE BUSY DAYS LAYER (Vertical List at Top)
 function renderCommits(confirmed) {
-    const container = document.getElementById('bookingLedger');
     let commitsHTML = '';
-
     if (confirmed.length > 0) {
         commitsHTML = `
             <div class="busy-days-section">
@@ -46,11 +60,10 @@ function renderCommits(confirmed) {
             <span class="info-label" style="margin-left:5px; margin-bottom:10px;">Recent Requests</span>
         `;
     }
-    
-    // We will prepend this to the ledger content in renderLedger
     window.commitsHeader = commitsHTML;
 }
 
+// 5. THE LEDGER RENDERER
 function renderLedger(bookings) {
     const container = document.getElementById('bookingLedger');
     if (!bookings || bookings.length === 0) {
@@ -101,10 +114,14 @@ function renderLedger(bookings) {
     container.innerHTML = (window.commitsHeader || '') + cardsHTML;
 }
 
+// 6. ACTION HANDLER (Now with UI Priority & Delay)
 async function handleAction(id, status, name, phone, date, time) {
+    // Update DB first
     const { error } = await _supabase.from('bookings').update({ status: status }).eq('id', id);
     
     if (!error) {
+        // UI REFRESHES INSTANTLY thanks to the Realtime listener above
+        
         let msg = "";
         if (status === 'confirmed') {
             msg = `Yo ${name}, Phestone here. Your session for ${date} at ${time} is officially LOCKED IN. See you then!`;
@@ -112,16 +129,18 @@ async function handleAction(id, status, name, phone, date, time) {
             msg = `Hello ${name}, thanks for reaching out. Unfortunately, Phestone is fully booked or unavailable for that slot. Apologies, let's link up another time!`;
         }
         
-        // WhatsApp Trigger
-        const waLink = `https://wa.me/${phone.replace('+', '')}?text=${encodeURIComponent(msg)}`;
-        window.open(waLink, '_blank');
-        
-        fetchBookings(); // Refresh UI
+        // WAIT 1.5 SECONDS so you see the UI change to "LOCKED IN" before WhatsApp pops
+        setTimeout(() => {
+            const waLink = `https://wa.me/${phone.replace('+', '')}?text=${encodeURIComponent(msg)}`;
+            window.open(waLink, '_blank');
+        }, 1500);
+
     } else {
         alert("Action failed. Check connection.");
     }
 }
 
+// 7. UTILS
 function toggleCard(id) {
     const card = document.getElementById(`card-${id}`);
     const wasActive = card.classList.contains('active');
@@ -132,5 +151,5 @@ function toggleCard(id) {
 async function deleteBooking(id) {
     if (!confirm("Permanently purge this record?")) return;
     const { error } = await _supabase.from('bookings').delete().eq('id', id);
-    if (!error) fetchBookings();
+    // Realtime will handle the UI refresh
 }
