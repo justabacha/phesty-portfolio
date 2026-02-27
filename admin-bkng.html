@@ -18,29 +18,47 @@
     </div>
 
     <div class="calendar-container">
-    <div class="calendar-header">
-        <h3 id="monthDisplay">Month</h3>
+        <div class="calendar-header">
+            <h3 id="monthDisplay">Month</h3>
+        </div>
+        <div class="calendar-grid-header">
+            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
     </div>
-    <div class="calendar-grid-header">
-        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-    </div>
-    <div class="calendar-grid" id="calendarGrid"></div>
-</div>
 
-<div class="ledger-container" id="mainLedgerContainer">
-    <div class="section-wrapper">
-        <span class="info-label">? PENDING REQUESTS</span>
-        <div id="pendingList"></div>
+    <div class="ledger-container" id="mainLedgerContainer">
+        <div class="section-wrapper">
+            <span class="info-label">? PENDING REQUESTS</span>
+            <div id="pendingList"></div>
+        </div>
+        <div class="section-wrapper">
+            <span class="info-label">✓ CONFIRMED COMMITS</span>
+            <div id="approvedList"></div>
+        </div>
+        <div class="section-wrapper">
+            <span class="info-label">✕ DECLINED</span>
+            <div id="declinedList"></div>
+        </div>
     </div>
-    <div class="section-wrapper">
-        <span class="info-label">✓ CONFIRMED COMMITS</span>
-        <div id="approvedList"></div>
-    </div>
-    <div class="section-wrapper">
-        <span class="info-label">✕ DECLINED</span>
-        <div id="declinedList"></div>
-    </div>
-</div>
+
+    <template id="bookingCardTemplate">
+        <div class="booking-card">
+            <div class="card-main">
+                <div>
+                    <span class="client-name"></span>
+                    <span class="request-date"></span>
+                </div>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="card-expand">
+                <div class="expand-inner">
+                    <p class="purpose-text"></p>
+                    <div class="ledger-actions"></div>
+                </div>
+            </div>
+        </div>
+    </template>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="admin-bkng.js"></script>

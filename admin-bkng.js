@@ -5,65 +5,70 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 document.addEventListener('DOMContentLoaded', () => {
     fetchBookings();
     
-    // GLOBAL CLICK LISTENER: This makes buttons "immortal"
+    // Immortal Global Listener
     document.addEventListener('click', async (e) => {
-        const target = e.target;
-        const id = target.getAttribute('data-id');
+        const btn = e.target;
+        const id = btn.dataset.id;
         
-        if (target.classList.contains('btn-confirm')) {
-            await updateStatus(id, 'confirmed');
-        } else if (target.classList.contains('btn-delete')) {
-            await updateStatus(id, 'declined');
-        } else if (target.classList.contains('btn-purge')) {
+        if (btn.classList.contains('btn-confirm')) await updateStatus(id, 'confirmed');
+        if (btn.classList.contains('btn-delete')) await updateStatus(id, 'declined');
+        if (btn.classList.contains('btn-purge')) {
             if(confirm("Purge forever?")) await deleteEntry(id);
-        } else if (target.classList.contains('btn-wa')) {
-            const phone = target.getAttribute('data-phone');
-            const name = target.getAttribute('data-name');
-            const status = target.getAttribute('data-status');
-            openWA(phone, name, status);
+        }
+        if (btn.classList.contains('btn-wa')) {
+            openWA(btn.dataset.phone, btn.dataset.name, btn.dataset.status);
         }
     });
 });
 
 async function fetchBookings() {
     const { data, error } = await _supabase.from('bookings').select('*').order('created_at', { ascending: false });
-    if (error) return;
+    if (error) return console.error("DB Error:", error);
 
     renderCalendar(data.filter(b => b.status === 'confirmed'));
     
-    // Clear and Refill using template strings (easier to read/edit)
-    document.getElementById('pendingList').innerHTML = renderList(data.filter(b => b.status === 'pending'), 'pending');
-    document.getElementById('approvedList').innerHTML = renderList(data.filter(b => b.status === 'confirmed'), 'approved');
-    document.getElementById('declinedList').innerHTML = renderList(data.filter(b => b.status === 'declined'), 'declined');
+    // Reset lists
+    const containers = {
+        pending: document.getElementById('pendingList'),
+        confirmed: document.getElementById('approvedList'),
+        declined: document.getElementById('declinedList')
+    };
+    
+    Object.values(containers).forEach(c => c.innerHTML = "");
+
+    data.forEach(booking => {
+        const card = buildCard(booking);
+        const target = booking.status === 'confirmed' ? 'confirmed' : booking.status;
+        containers[target].appendChild(card);
+    });
 }
 
-function renderList(list, type) {
-    if (list.length === 0) return '<p class="empty-msg">Empty</p>';
-    return list.map(b => `
-        <div class="booking-card ${b.status}">
-            <div class="card-main" onclick="this.parentElement.classList.toggle('active')">
-                <div>
-                    <span class="client-name">${b.client_name}</span>
-                    <span class="request-date">${b.booking_date} @ ${b.booking_time}</span>
-                </div>
-                <span class="chevron">▼</span>
-            </div>
-            <div class="card-expand">
-                <div class="expand-inner">
-                    <p class="purpose-text">"${b.purpose || 'No message'}"</p>
-                    <div class="ledger-actions">
-                        ${type === 'pending' ? `
-                            <button class="btn-confirm" data-id="${b.id}">APPROVE</button>
-                            <button class="btn-delete" data-id="${b.id}">DECLINE</button>
-                        ` : `
-                            <button class="btn-wa" data-phone="${b.client_phone}" data-name="${b.client_name}" data-status="${b.status}">WHATSAPP</button>
-                            <button class="btn-purge" data-id="${b.id}">PURGE</button>
-                        `}
-                    </div>
-                </div>
-            </div>
-        </div>
-    `).join('');
+function buildCard(b) {
+    const template = document.getElementById('bookingCardTemplate');
+    const clone = template.content.cloneNode(true);
+    const card = clone.querySelector('.booking-card');
+
+    card.classList.add(b.status);
+    card.querySelector('.client-name').textContent = b.client_name;
+    card.querySelector('.request-date').textContent = `${b.booking_date} @ ${b.booking_time}`;
+    card.querySelector('.purpose-text').textContent = `"${b.purpose || 'No message'}"`;
+
+    // Toggle logic
+    card.querySelector('.card-main').onclick = () => card.classList.toggle('active');
+
+    const actions = card.querySelector('.ledger-actions');
+    if (b.status === 'pending') {
+        actions.innerHTML = `
+            <button class="btn-confirm" data-id="${b.id}">APPROVE</button>
+            <button class="btn-delete" data-id="${b.id}">DECLINE</button>
+        `;
+    } else {
+        actions.innerHTML = `
+            <button class="btn-wa" data-phone="${b.client_phone}" data-name="${b.client_name}" data-status="${b.status}">WHATSAPP</button>
+            <button class="btn-purge" data-id="${b.id}">PURGE</button>
+        `;
+    }
+    return clone;
 }
 
 function renderCalendar(confirmed) {
@@ -77,12 +82,15 @@ function renderCalendar(confirmed) {
     const busyDays = confirmed.map(b => parseInt(b.booking_date.split('-')[2]));
 
     grid.innerHTML = "";
-    // Offset for start of month
-    for (let i = 1; i < (firstDay || 7); i++) grid.innerHTML += `<div></div>`;
+    // Align Mon-Sun (JS 0 is Sun, we want Mon start)
+    const offset = firstDay === 0 ? 6 : firstDay - 1;
+    for (let i = 0; i < offset; i++) grid.appendChild(document.createElement('div'));
     
     for (let day = 1; day <= daysInMonth; day++) {
-        const isBusy = busyDays.includes(day);
-        grid.innerHTML += `<div class="cal-cell ${isBusy ? 'busy' : ''}">${day}</div>`;
+        const cell = document.createElement('div');
+        cell.className = `cal-cell ${busyDays.includes(day) ? 'busy' : ''}`;
+        cell.textContent = day;
+        grid.appendChild(cell);
     }
 }
 
@@ -97,6 +105,6 @@ async function deleteEntry(id) {
 }
 
 function openWA(phone, name, status) {
-    const msg = status === 'confirmed' ? `Yo ${name}, Phestone here. Your session is LOCKED IN!` : `Hey ${name}, sorry I can't make that slot.`;
+    const msg = status === 'confirmed' ? `Yo ${name}, Phestone here. Your session is LOCKED IN!` : `Hey ${name}, Phestone here. Can't make that slot, sorry!`;
     window.open(`https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
 }
