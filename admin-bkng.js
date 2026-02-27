@@ -95,26 +95,30 @@ function renderCalendar(confirmed) {
     }
 }
 
+// Add this at the very top of admin-bkng.js to clear any cache issues
+console.log("🚀 PHESTONE ADMIN SYSTEM INITIALIZED");
+
 async function updateStatus(id, newStatus) {
-    console.log(`ATTEMPTING DATABASE UPDATE: ID ${id} to ${newStatus}`);
+    // Force ID to string and trim any hidden spaces
+    const cleanId = String(id).trim();
+    console.log(`📡 Sending Update: ID [${cleanId}] to [${newStatus}]`);
     
-    // This sends the update to Supabase
-    const { data, error, status } = await _supabase
+    const { data, error } = await _supabase
         .from('bookings')
         .update({ status: newStatus })
-        .eq('id', id)
-        .select(); // This asks Supabase to send back the updated row as proof
+        .eq('id', cleanId)
+        .select(); 
 
     if (error) {
-        console.error("SUPABASE ERROR:", error.message);
-        alert("🚨 DATABASE REJECTED UPDATE!\nReason: " + error.message);
+        console.error("❌ SUPABASE ERROR:", error.message);
+        alert("Database Error: " + error.message);
     } else if (data && data.length > 0) {
-        console.log("✅ SUCCESS! Database updated:", data[0]);
-        alert("🎉 Status updated to " + newStatus);
-        fetchBookings(); // Refresh the UI
+        console.log("✅ SUCCESS:", data[0]);
+        // Remove the alert once you see it working to keep it smooth
+        fetchBookings(); 
     } else {
-        console.warn("⚠️ NO ROWS UPDATED. Check if the ID exists in your table.");
-        alert("⚠️ Supabase said 'OK' but nothing changed. Are you sure ID " + id + " exists in the 'bookings' table?");
+        console.warn("⚠️ No rows changed. This is usually an RLS Policy issue.");
+        alert("System connected, but Supabase RLS is blocking the update. Check your Policies!");
     }
 }
 
