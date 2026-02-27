@@ -10,15 +10,35 @@
 </head>
 <body>
 
-    <button class="back-nav-btn" onclick="window.location.href='admin.html'">BACK</button>
+    <button class="back-nav-btn" onclick="window.location.href='admin.html'">← BACK</button>
 
     <div class="ledger-header">
         <h1 class="nature-text">Client Ledger</h1>
         <p class="ledger-subtitle">Manage your session requests</p>
     </div>
 
-    <div class="ledger-container" id="bookingLedger">
-        <div class="loading-state">Scanning Ledger...</div>
+    <div class="calendar-strip" id="commitCalendar">
+        </div>
+
+    <div class="ledger-container">
+        <div class="section-wrapper">
+            <span class="info-label">? NEW REQUESTS</span>
+            <div id="pendingList"></div>
+        </div>
+
+        <hr class="section-divider">
+
+        <div class="section-wrapper">
+            <span class="info-label">✓ LOCKED IN / COMMITS</span>
+            <div id="approvedList"></div>
+        </div>
+
+        <hr class="section-divider">
+
+        <div class="section-wrapper">
+            <span class="info-label">✕ DECLINED HISTORY</span>
+            <div id="declinedList"></div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
