@@ -95,11 +95,27 @@ function renderCalendar(confirmed) {
     }
 }
 
-async function updateStatus(id, status) {
-    console.log(`Updating ${id} to ${status}`);
-    const { error } = await _supabase.from('bookings').update({ status }).eq('id', id);
-    if (!error) fetchBookings();
-    else alert("Update failed!");
+async function updateStatus(id, newStatus) {
+    console.log(`ATTEMPTING DATABASE UPDATE: ID ${id} to ${newStatus}`);
+    
+    // This sends the update to Supabase
+    const { data, error, status } = await _supabase
+        .from('bookings')
+        .update({ status: newStatus })
+        .eq('id', id)
+        .select(); // This asks Supabase to send back the updated row as proof
+
+    if (error) {
+        console.error("SUPABASE ERROR:", error.message);
+        alert("🚨 DATABASE REJECTED UPDATE!\nReason: " + error.message);
+    } else if (data && data.length > 0) {
+        console.log("✅ SUCCESS! Database updated:", data[0]);
+        alert("🎉 Status updated to " + newStatus);
+        fetchBookings(); // Refresh the UI
+    } else {
+        console.warn("⚠️ NO ROWS UPDATED. Check if the ID exists in your table.");
+        alert("⚠️ Supabase said 'OK' but nothing changed. Are you sure ID " + id + " exists in the 'bookings' table?");
+    }
 }
 
 async function deleteEntry(id) {
