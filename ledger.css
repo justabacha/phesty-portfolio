@@ -158,20 +158,42 @@
     justify-content: space-between;
 }
 
-.section-group { margin-bottom: 30px; }
+.section-wrapper { margin-bottom: 40px; }
 .section-divider { border: 0; border-top: 1px solid rgba(255,255,255,0.05); margin: 20px 0; }
-.empty-text { font-size: 11px; color: #333; padding-left: 10px; }
+.empty-msg { color: #333; font-size: 11px; padding: 10px; }
 
+/* WhatsApp Button for Approved */
 .btn-wa {
-    background: #25D366; /* WhatsApp Green */
+    background: #25D366;
     color: #000;
     border: none;
     padding: 10px;
-    border-radius: 8px;
+    border-radius: 6px;
     font-weight: 900;
-    font-size: 11px;
+    font-size: 10px;
+    flex: 2;
+}
+
+/* WhatsApp Button for Declined */
+.btn-wa-decline {
+    background: transparent;
+    color: #ff4d4d;
+    border: 1px solid #ff4d4d;
+    padding: 10px;
+    border-radius: 6px;
+    font-weight: 900;
+    font-size: 10px;
+    flex: 2;
+}
+
+.btn-purge {
+    background: rgba(255,255,255,0.05);
+    color: #444;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 10px;
     flex: 1;
-    cursor: pointer;
 }
 
 .purpose-text {

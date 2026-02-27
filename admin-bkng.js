@@ -5,73 +5,70 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 document.addEventListener('DOMContentLoaded', fetchBookings);
 
 async function fetchBookings() {
-    // Sorting by created_at DESC so the newest request is always on top
+    // Fetching and sorting by most recent request first
     const { data, error } = await _supabase
         .from('bookings')
         .select('*')
         .order('created_at', { ascending: false });
 
     if (error) {
-        console.error("Supabase Error:", error);
+        console.error("Connection Error:", error);
         return;
     }
 
-    renderCommits(data.filter(b => b.status === 'confirmed'));
-    renderLedger(data);
+    const pending = data.filter(b => b.status === 'pending');
+    const confirmed = data.filter(b => b.status === 'confirmed');
+    const declined = data.filter(b => b.status === 'declined');
+
+    renderAllSections(pending, confirmed, declined);
 }
 
-function renderCommits(confirmed) {
+function renderAllSections(pending, confirmed, declined) {
     const container = document.getElementById('bookingLedger');
-    let commitsHTML = '';
+    
+    container.innerHTML = `
+        <div class="section-wrapper">
+            <span class="info-label">? NEW REQUESTS (${pending.length})</span>
+            ${pending.length > 0 ? pending.map(b => renderCard(b, 'pending')).join('') : '<p class="empty-msg">No new requests.</p>'}
+        </div>
 
-    if (confirmed.length > 0) {
-        // Only showing the most critical info for the "Commits" layer
-        commitsHTML = `
-            <div class="busy-days-section">
-                <span class="info-label" style="margin-left:5px; margin-bottom:10px;">Locked Sessions (Commits)</span>
-                ${confirmed.map(b => {
-                    const day = b.booking_date.split('-')[2];
-                    return `
-                        <div class="commit-tag-vertical" onclick="toggleCard('${b.id}')">
-                            <span class="commit-day">${day}th</span>
-                            <span class="commit-client">${b.client_name}</span>
-                            <span class="commit-time">@ ${b.booking_time}</span>
-                        </div>
-                    `;
-                }).join('')}
-            </div>
-            <hr style="border:0; border-top:1px solid rgba(255,255,255,0.05); margin: 25px 0;">
+        <hr class="section-divider">
+
+        <div class="section-wrapper">
+            <span class="info-label">✓ LOCKED IN / COMMITS (${confirmed.length})</span>
+            ${confirmed.length > 0 ? confirmed.map(b => renderCard(b, 'approved')).join('') : '<p class="empty-msg">No confirmed sessions.</p>'}
+        </div>
+
+        <hr class="section-divider">
+
+        <div class="section-wrapper">
+            <span class="info-label">✕ DECLINED HISTORY (${declined.length})</span>
+            ${declined.length > 0 ? declined.map(b => renderCard(b, 'declined')).join('') : '<p class="empty-msg">No declined requests.</p>'}
+        </div>
+    `;
+}
+
+function renderCard(b, type) {
+    let actionButtons = "";
+    
+    if (type === 'pending') {
+        actionButtons = `
+            <button class="btn-confirm" onclick="updateStatus('${b.id}', 'confirmed')">APPROVE</button>
+            <button class="btn-delete" onclick="updateStatus('${b.id}', 'declined')">DECLINE</button>
+        `;
+    } else if (type === 'approved') {
+        actionButtons = `
+            <button class="btn-wa" onclick="openWA('${b.client_phone}', '${b.client_name}', 'confirm', '${b.booking_date}', '${b.booking_time}')">WHATSAPP LOUDER</button>
+            <button class="btn-purge" onclick="deleteEntry('${b.id}')">PURGE</button>
+        `;
+    } else {
+        actionButtons = `
+            <button class="btn-wa-decline" onclick="openWA('${b.client_phone}', '${b.client_name}', 'decline')">SEND APOLOGY</button>
+            <button class="btn-purge" onclick="deleteEntry('${b.id}')">PURGE</button>
         `;
     }
-    window.commitsHeader = commitsHTML;
-}
 
-function renderLedger(bookings) {
-    const container = document.getElementById('bookingLedger');
-    if (!bookings || bookings.length === 0) {
-        container.innerHTML = `<p style="text-align:center; color:#333; margin-top:50px;">No requests found.</p>`;
-        return;
-    }
-
-    const cardsHTML = bookings.map(b => {
-        let statusDisplay = "";
-        let actionButtons = "";
-
-        if (b.status === 'confirmed') {
-            statusDisplay = `<span class="locked-status">✓ LOCKED IN</span>`;
-            actionButtons = `<button class="btn-wa" onclick="sendWA('${b.client_phone}', '${b.client_name}', 'confirm', '${b.booking_date}', '${b.booking_time}')">WHATSAPP CONFIRMATION</button>`;
-        } else if (b.status === 'declined') {
-            statusDisplay = `<span style="color:#ff4d4d; font-size:11px; font-weight:900;">✕ DECLINED</span>`;
-            actionButtons = `<button class="btn-wa-decline" onclick="sendWA('${b.client_phone}', '${b.client_name}', 'decline')">SEND APOLOGY</button>`;
-        } else {
-            statusDisplay = `<span style="color:#07d2fa; font-size:11px; font-weight:900;">AWAITING REVIEW</span>`;
-            actionButtons = `
-                <button class="btn-confirm" onclick="updateStatus('${b.id}', 'confirmed')">APPROVE</button>
-                <button class="btn-delete" onclick="updateStatus('${b.id}', 'declined')">DECLINE</button>
-            `;
-        }
-
-        return `
+    return `
         <div class="booking-card ${b.status}" id="card-${b.id}">
             <div class="card-main" onclick="toggleCard('${b.id}')">
                 <div>
@@ -80,57 +77,47 @@ function renderLedger(bookings) {
                 </div>
                 <span class="chevron">▼</span>
             </div>
-            
             <div class="card-expand">
                 <div class="expand-inner">
-                    <span class="info-label">Status & Contact</span>
-                    <div class="info-value">
-                        ${statusDisplay} 
-                        <div style="margin-top:8px;"><a href="tel:${b.client_phone}" style="color:#eee; text-decoration:none; font-size:13px;">${b.client_phone}</a></div>
-                    </div>
-
-                    <span class="info-label">Message/Purpose</span>
-                    <p class="info-value" style="font-size:13px; line-height:1.5; color:#aaa;">${b.purpose}</p>
-
-                    <div class="ledger-actions">
-                        ${actionButtons}
-                        ${b.status !== 'pending' ? `<button class="btn-purge" onclick="deleteBooking('${b.id}')">PURGE</button>` : ''}
-                    </div>
+                    <p class="purpose-text">"${b.purpose || 'No message provided'}"</p>
+                    <div class="ledger-actions">${actionButtons}</div>
                 </div>
             </div>
         </div>
-    `}).join('');
-
-    container.innerHTML = (window.commitsHeader || '') + 
-                         `<span class="info-label" style="margin-left:5px; margin-bottom:10px; display:block;">Full Ledger History</span>` + 
-                         cardsHTML;
+    `;
 }
 
-async function updateStatus(id, status) {
-    const { error } = await _supabase.from('bookings').update({ status: status }).eq('id', id);
-    if (!error) fetchBookings();
+// THE ENGINE: Updates Supabase & Refreshes UI
+async function updateStatus(id, newStatus) {
+    const { error } = await _supabase
+        .from('bookings')
+        .update({ status: newStatus })
+        .eq('id', id);
+
+    if (!error) {
+        fetchBookings(); // This refreshes the whole view instantly
+    }
 }
 
-function sendWA(phone, name, type, date, time) {
+function openWA(phone, name, type, date, time) {
     let msg = "";
     if (type === 'confirm') {
         msg = `Yo ${name}, Phestone here. Your session for ${date} at ${time} is officially LOCKED IN. See you then!`;
     } else {
-        msg = `Hello ${name}, thanks for reaching out. Unfortunately, Phestone is fully booked or unavailable for that slot. Apologies!`;
+        msg = `Hello ${name}, Phestone here. Apologies, but I'm unable to take your request for this slot. Let's catch up later!`;
     }
-    const cleanPhone = phone.replace('+', '');
+    const cleanPhone = phone.replace(/\+/g, '').replace(/\s/g, '');
     window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
 function toggleCard(id) {
     const card = document.getElementById(`card-${id}`);
-    const wasActive = card.classList.contains('active');
-    document.querySelectorAll('.booking-card').forEach(c => c.classList.remove('active'));
-    if (!wasActive) card.classList.add('active');
+    card.classList.toggle('active');
 }
 
-async function deleteBooking(id) {
-    if (!confirm("Permanently purge this record?")) return;
-    const { error } = await _supabase.from('bookings').delete().eq('id', id);
-    if (!error) fetchBookings();
+async function deleteEntry(id) {
+    if (confirm("Purge this record forever?")) {
+        await _supabase.from('bookings').delete().eq('id', id);
+        fetchBookings();
+    }
 }
