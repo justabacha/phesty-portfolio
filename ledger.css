@@ -206,40 +206,33 @@
 .commit-day { color: #98fa9a; font-weight: 900; font-size: 14px; width: 40px; }
 .commit-client { color: #fff; font-size: 13px; font-weight: 600; flex: 1; margin-left: 10px; }
 .commit-time { color: #555; font-size: 11px; font-weight: 800; }
-.calendar-strip {
-    display: flex;
-    justify-content: space-around;
-    padding: 15px;
-    background: rgba(24, 24, 24, 0.82);
-    border-radius: 12px;
-    margin: 0 20px 20px 20px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
 
-.cal-day {
+.calendar-container {
+    background: rgba(255, 255, 255, 0.619);
+    border: 1px solid rgba(74, 16, 232, 0.717);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px;
+}
+.calendar-grid-header, .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    gap: 5px;
+}
+.calendar-grid-header span { font-size: 10px; color: #efdf08; text-transform: uppercase; padding-bottom: 10px; }
+.cal-cell {
+    aspect-ratio: 1/1;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    width: 40px;
-    height: 40px;
     justify-content: center;
-    border-radius: 50%;
     font-size: 12px;
-    color: #f8f5f5;
+    color: #444;
+    border-radius: 5px;
 }
-
-.cal-day.busy {
+.cal-cell.busy {
     background: #98fa9a;
     color: #000;
     font-weight: 900;
-    box-shadow: 0 0 15px #6cf96fa4;
-}
-
-.cal-day span { pointer-events: none; }
-
-.empty-msg {
-    text-align: center;
-    color: #eee8e8;
-    font-size: 11px;
-    margin: 20px 0;
+    box-shadow: 0 0 10px rgba(152, 250, 154, 0.4);
 }

@@ -17,29 +17,30 @@
         <p class="ledger-subtitle">Manage your session requests</p>
     </div>
 
-    <div class="calendar-strip" id="commitCalendar">
-        </div>
-
-    <div class="ledger-container">
-        <div class="section-wrapper">
-            <span class="info-label">? NEW REQUESTS</span>
-            <div id="pendingList"></div>
-        </div>
-
-        <hr class="section-divider">
-
-        <div class="section-wrapper">
-            <span class="info-label">✓ LOCKED IN / COMMITS</span>
-            <div id="approvedList"></div>
-        </div>
-
-        <hr class="section-divider">
-
-        <div class="section-wrapper">
-            <span class="info-label">✕ DECLINED HISTORY</span>
-            <div id="declinedList"></div>
-        </div>
+    <div class="calendar-container">
+    <div class="calendar-header">
+        <h3 id="monthDisplay">Month</h3>
     </div>
+    <div class="calendar-grid-header">
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+    </div>
+    <div class="calendar-grid" id="calendarGrid"></div>
+</div>
+
+<div class="ledger-container" id="mainLedgerContainer">
+    <div class="section-wrapper">
+        <span class="info-label">? PENDING REQUESTS</span>
+        <div id="pendingList"></div>
+    </div>
+    <div class="section-wrapper">
+        <span class="info-label">✓ CONFIRMED COMMITS</span>
+        <div id="approvedList"></div>
+    </div>
+    <div class="section-wrapper">
+        <span class="info-label">✕ DECLINED</span>
+        <div id="declinedList"></div>
+    </div>
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="admin-bkng.js"></script>
