@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHESTY | Booking Ledger</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="ledger.css">
+</head>
+<body>
+
+    <button class="back-nav-btn" onclick="window.location.href='admin.html'">BACK</button>
+
+    <div class="ledger-header">
+        <h1 class="nature-text">Client Ledger</h1>
+        <p class="ledger-subtitle">Manage your session requests</p>
+    </div>
+
+    <div class="ledger-container" id="bookingLedger">
+        <div class="loading-state">Scanning Ledger...</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="admin-bkng.js"></script>
+</body>
+</html>

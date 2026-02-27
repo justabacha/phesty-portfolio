@@ -42,6 +42,17 @@
     margin-bottom: 40px;
 }
 
+.nav-arrow {
+    background: transparent;
+    border: 1px solid rgba(214, 252, 226, 0.941);
+    color: #fff;
+    padding: 5px 12px;
+    border-radius: 50px;
+    font-size: 10px;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
 .nature-text {
     font-size: 32px !important;
     margin-bottom: 5px;
@@ -287,12 +298,6 @@ input[type="time"] {
     display: block !important;
 }
 
-sup {
-    font-size: 0.6em;
-    color: #e87a5c;
-    vertical-align: super;
-}
-
 .log-card {
     background: #0d0d0d;
     border-radius: 15px;
@@ -312,4 +317,28 @@ sup {
     border: 1px solid #ff4d4d33;
     padding: 4px 8px;
     border-radius: 6px;
+}
+
+/* The Neon Receipt Border */
+.receipt-card {
+    margin-bottom: 25px; 
+    border-left: 3px solid #98fa9a; /* The green line */
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 15px;
+    padding-left: 20px; 
+    position: relative; 
+    background: #080808; 
+    padding: 20px; 
+    border-radius: 12px;
+    box-shadow: -10px 0px 20px -10px rgba(152, 250, 154, 0.2); /* Subtle glow */
+}
+
+/* Error Blinking for Inputs */
+.input-error {
+    border: 1px solid #ff4d4d !important;
+    animation: blink-red 0.5s step-end infinite alternate;
+}
+
+@keyframes blink-red {
+    50% { border-color: transparent; box-shadow: 0 0 10px #ff4d4d; }
 }

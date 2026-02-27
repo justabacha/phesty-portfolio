@@ -9,10 +9,9 @@ let selectedDate = null;
 document.addEventListener('DOMContentLoaded', () => {
     renderCalendar(currentMonth, currentYear);
     setupEventListeners();
-    checkExistingBooking(); // This will now work!
+    checkExistingBooking();
 });
 
-// --- CALENDAR RENDER ---
 async function renderCalendar(month, year) {
     const grid = document.getElementById('calendarGrid');
     const monthDisplay = document.getElementById('monthDisplay');
@@ -59,7 +58,6 @@ function openBookingModal(date, element) {
     document.getElementById('targetDateDisplay').innerText = `Booking for: ${date}`;
 }
 
-// --- GLOBAL WITHDRAW FUNCTION ---
 window.withdrawBooking = async function(id) {
     if (!confirm("Withdraw this request?")) return;
     const { error } = await _supabase.from('bookings').delete().eq('id', id);
@@ -68,46 +66,61 @@ window.withdrawBooking = async function(id) {
         myBookings = myBookings.filter(b => b.id !== id);
         localStorage.setItem('phesty_bookings', JSON.stringify(myBookings));
         location.reload();
-    } else {
-        alert("Withdrawal failed. Check connection.");
     }
 };
 
-// --- TRACKER DISPLAY ---
-function checkExistingBooking() {
-    const myBookings = JSON.parse(localStorage.getItem('phesty_bookings') || "[]");
+async function checkExistingBooking() {
+    let myBookings = JSON.parse(localStorage.getItem('phesty_bookings') || "[]");
     const tracker = document.getElementById('trackerMessage');
-    
-    if (tracker && myBookings.length > 0) {
-        tracker.style.textAlign = "left"; 
-        tracker.innerHTML = ""; 
+    if (!tracker) return;
 
-        myBookings.forEach(b => {
-            const dateObj = new Date(b.date);
-            const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
-            const monthName = dateObj.toLocaleDateString('en-US', { month: 'long' });
-            const dayNum = dateObj.getDate();
-            const suffix = (dayNum === 1 || dayNum === 21 || dayNum === 31) ? "st" : 
-                           (dayNum === 2 || dayNum === 22) ? "nd" : 
-                           (dayNum === 3 || dayNum === 23) ? "rd" : "th";
+    // SYNC WITH SUPABASE
+    try {
+        const { data: remoteBookings } = await _supabase.from('bookings').select('id');
+        if (remoteBookings) {
+            const remoteIds = remoteBookings.map(b => b.id.toString());
+            myBookings = myBookings.filter(local => remoteIds.includes(local.id.toString()));
+            localStorage.setItem('phesty_bookings', JSON.stringify(myBookings));
+        }
+    } catch (e) {}
 
-            tracker.innerHTML += `
-                <div style="margin-bottom: 25px; border-left: 2px solid #98fa9a; padding-left: 15px; position: relative; background: #080808; padding: 15px; border-radius: 12px;">
-                    <span onclick="window.withdrawBooking('${b.id}')" style="position: absolute; top: 10px; right: 10px; color: #ff4d4d; font-size: 10px; cursor: pointer; font-weight: 900; border: 1px solid #ff4d4d33; padding: 4px 8px; border-radius: 4px;">WITHDRAW</span>
-                    <p style="color: #444; font-size: 11px; font-weight: 800; margin-bottom: 8px;">
-                        ${b.log} <span style="margin-left:10px; color:#222;">>></span> <span style="color:#98fa9a; margin-left:10px;">REQUEST LOGGED</span>
-                    </p>
-                    <p style="color: #fff; margin: 0; font-size: 13px; opacity: 0.7;">Session requested for:</p>
-                    <p style="color: #fff; margin: 5px 0 0; font-size: 16px; font-weight: 800;">
-                        ${dayName}, <span style="color:#98fa9a;">${monthName} ${dayNum}<sup>${suffix}</sup></span>
-                    </p>
-                    <p style="color: #98fa9a; margin: 2px 0 0; font-size: 18px; font-weight: 900;">@ ${b.time}</p>
-                    <p style="color: #555; font-size: 10px; margin-top: 10px; text-transform: uppercase;">Status: <span style="color: #07d2fa;">Awaiting Review</span></p>
-                </div>
-            `;
-        });
-        tracker.innerHTML += `<p style="margin-top: 10px; color: #333; font-size: 11px; text-align: center; font-style: italic;">"Your creative window is being prioritized. Stay tuned."</p>`;
+    // 1. EMPTY STATE: "Choose date" message
+    if (myBookings.length === 0) {
+        tracker.style.textAlign = "center";
+        tracker.innerHTML = `<p style="color: #444; font-size: 14px; margin-top: 20px;">Choose a date on the calendar to check availability.</p>`;
+        return;
     }
+
+    // 2. RECEIPT STATE: Neon Left Border included
+    tracker.style.textAlign = "left"; 
+    tracker.innerHTML = ""; 
+
+    myBookings.forEach(b => {
+        const d = new Date(b.date);
+        const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
+        const monthName = d.toLocaleDateString('en-US', { month: 'long' });
+        const dayNum = d.getDate();
+        const suffix = (dayNum % 10 === 1 && dayNum !== 11) ? "st" : (dayNum % 10 === 2 && dayNum !== 12) ? "nd" : (dayNum % 10 === 3 && dayNum !== 13) ? "rd" : "th";
+
+        tracker.innerHTML += `
+            <div class="receipt-card">
+                <span onclick="window.withdrawBooking('${b.id}')" style="position: absolute; top: 15px; right: 15px; color: #ff4d4d; font-size: 10px; cursor: pointer; font-weight: 900; border: 1px solid #ff4d4d44; padding: 4px 8px; border-radius: 4px; background: #000;">WITHDRAW</span>
+                
+                <p style="color: #444; font-size: 11px; font-weight: 800; margin-bottom: 10px;">
+                    ${b.log} <span style="margin-left:10px; color:#222;">>></span> <span style="color:#98fa9a; margin-left:10px;">REQUEST LOGGED</span>
+                </p>
+                
+                <p style="color: #fff; margin: 0; font-size: 13px; opacity: 0.7;">Session requested for:</p>
+                <p style="color: #fff; margin: 5px 0 0; font-size: 18px; font-weight: 800;">
+                    ${dayName}, <span style="color:#98fa9a;">${monthName} ${dayNum}<sup>${suffix}</sup></span>
+                </p>
+                <p style="color: #98fa9a; margin: 2px 0 0; font-size: 22px; font-weight: 900;">@ ${b.time}</p>
+                
+                <p style="color: #555; font-size: 10px; margin-top: 15px; text-transform: uppercase;">Status: <span style="color: #07d2fa; font-weight: 800;">Awaiting Review</span></p>
+            </div>
+        `;
+    });
+    tracker.innerHTML += `<p style="margin-top: 20px; color: #333; font-size: 11px; text-align: center; font-style: italic; opacity: 0.6;">"Your creative window is being prioritized. Stay tuned."</p>`;
 }
 
 function setupEventListeners() {
@@ -120,39 +133,51 @@ function setupEventListeners() {
 
     if (confirmBtn) {
         confirmBtn.onclick = async () => {
-            const name = document.getElementById('clientName').value.trim();
-            const phone = document.getElementById('clientPhone').value.trim();
-            const rawTime = document.getElementById('bookingTime').value;
-            const purpose = document.getElementById('bookingPurpose').value.trim();
+            const inputs = [
+                { id: 'clientName', val: document.getElementById('clientName').value.trim() },
+                { id: 'clientPhone', val: document.getElementById('clientPhone').value.trim() },
+                { id: 'bookingTime', val: document.getElementById('bookingTime').value },
+                { id: 'bookingPurpose', val: document.getElementById('bookingPurpose').value.trim() }
+            ];
 
-            const phoneRegex = /^\+254\d{9}$/; 
-            if (!name || !phoneRegex.test(phone) || !rawTime || !purpose) {
-                alert("Fill everything! +254 number must be 12 digits total.");
+            let hasError = false;
+            const phoneRegex = /^\+254\d{9}$/;
+
+            // VALIDATION LOOP
+            inputs.forEach(input => {
+                const el = document.getElementById(input.id);
+                el.classList.remove('input-error');
+
+                if (!input.val || (input.id === 'clientPhone' && !phoneRegex.test(input.val))) {
+                    el.classList.add('input-error');
+                    hasError = true;
+                }
+            });
+
+            if (hasError) {
+                setTimeout(() => inputs.forEach(i => document.getElementById(i.id).classList.remove('input-error')), 3000);
                 return;
             }
 
-            let [h, m] = rawTime.split(':');
-            const ampm = h >= 12 ? 'PM' : 'AM';
-            const formattedTime = `${h % 12 || 12}:${m} ${ampm}`;
+            let [h, m] = inputs[2].val.split(':');
+            const formattedTime = `${h % 12 || 12}:${m} ${h >= 12 ? 'PM' : 'AM'}`;
             const logStamp = new Date().getHours().toString().padStart(2, '0') + ":" + new Date().getMinutes().toString().padStart(2, '0');
 
-            confirmBtn.innerText = "Locking Ledger...";
+            confirmBtn.innerText = "Locking...";
             confirmBtn.disabled = true;
             
             const { data, error } = await _supabase.from('bookings').insert([{ 
-                client_name: name, client_phone: phone, booking_time: formattedTime, 
-                purpose: purpose, booking_date: selectedDate, status: 'pending' 
+                client_name: inputs[0].val, client_phone: inputs[1].val, 
+                booking_time: formattedTime, purpose: inputs[3].val, 
+                booking_date: selectedDate, status: 'pending' 
             }]).select();
 
             if (!error) {
                 let myBookings = JSON.parse(localStorage.getItem('phesty_bookings') || "[]");
                 myBookings.unshift({ id: data[0].id, date: selectedDate, time: formattedTime, log: logStamp });
                 localStorage.setItem('phesty_bookings', JSON.stringify(myBookings));
-
-                alert("Request Logged!");
                 location.reload(); 
             } else {
-                alert("Error saving.");
                 confirmBtn.disabled = false;
             }
         };

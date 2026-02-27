@@ -1,0 +1,140 @@
+/* Fixed Sleek Back Button */
+.back-nav-btn {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    z-index: 1000;
+    cursor: pointer;
+}
+
+.ledger-header {
+    margin: 80px 0 25px 20px;
+}
+
+.ledger-subtitle {
+    color: #444;
+    font-size: 12px;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Thick Glass Cards */
+.booking-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    margin-bottom: 15px;
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.card-main {
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.client-name {
+    font-size: 15px;
+    font-weight: 800;
+    color: #fff;
+    display: block;
+}
+
+.request-date {
+    font-size: 11px;
+    color: #f8f8f9;
+    margin-top: 2px;
+}
+
+.chevron {
+    font-size: 10px;
+    color: #98fa9a;
+    transition: 0.3s;
+}
+
+.active .chevron {
+    transform: rotate(180deg);
+}
+
+/* Expansion Content */
+.card-expand {
+    max-height: 0;
+    transition: max-height 0.4s ease;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.active .card-expand {
+    max-height: 350px;
+}
+
+.expand-inner {
+    padding: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.info-label {
+    font-size: 9px;
+    color: #2ffe6d;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.info-value {
+    font-size: 14px;
+    margin-bottom: 15px;
+    color: #f0e7e7;
+}
+
+/* Compact Action Row */
+.ledger-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.btn-confirm {
+    background: #98fa9a;
+    color: #000;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: 900;
+    font-size: 11px;
+    flex: 2;
+    cursor: pointer;
+}
+
+.btn-delete {
+    background: rgba(255, 77, 77, 0.1);
+    color: #ff4d4d;
+    border: 1px solid rgba(255, 77, 77, 0.2);
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    flex: 1;
+    cursor: pointer;
+}
+
+.locked-status {
+    color: #98fa9a;
+    font-weight: 900;
+    font-size: 12px;
+    letter-spacing: 1px;
+}
