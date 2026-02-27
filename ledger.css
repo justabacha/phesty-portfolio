@@ -158,6 +158,29 @@
     justify-content: space-between;
 }
 
+.section-group { margin-bottom: 30px; }
+.section-divider { border: 0; border-top: 1px solid rgba(255,255,255,0.05); margin: 20px 0; }
+.empty-text { font-size: 11px; color: #333; padding-left: 10px; }
+
+.btn-wa {
+    background: #25D366; /* WhatsApp Green */
+    color: #000;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: 900;
+    font-size: 11px;
+    flex: 1;
+    cursor: pointer;
+}
+
+.purpose-text {
+    font-style: italic;
+    color: #888;
+    font-size: 12px;
+    margin-bottom: 15px;
+}
+
 .commit-day { color: #98fa9a; font-weight: 900; font-size: 14px; width: 40px; }
 .commit-client { color: #fff; font-size: 13px; font-weight: 600; flex: 1; margin-left: 10px; }
 .commit-time { color: #555; font-size: 11px; font-weight: 800; }
