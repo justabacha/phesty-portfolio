@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Phestone | Ledger</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="booking.css">
+</head>
+<body class="booking-page">
+    
+    <a href="index.html" class="bak-circle">Back</a>
+
+    <main class="booking-container">
+        <header class="booking-header">
+            <h1 class="nature-text">Booking Ledger</h1>
+            <p class="sub-vibe">Select a date to view studio openings.</p>
+        </header>
+
+        <section class="calendar-section glass">
+            <div class="calendar-header">
+                <button id="prevMonth" class="nav-arrow">prev</button>
+                <h2 id="monthDisplay">Loading...</h2>
+                <button id="nextMonth" class="nav-arrow">next</button>
+            </div>
+            
+            <div class="calendar-days">
+                <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+            </div>
+            
+            <div id="calendarGrid" class="calendar-grid">
+                </div>
+        </section>
+
+        <section class="status-tracker glass">
+            <p id="trackerMessage">Tap a date to check availability.</p>
+        </section>
+    </main>
+
+    <div id="bookingModal" class="modal-overlay">
+        <div class="modal-card">
+            <span class="close-modal">&times;</span>
+            <h2 class="pop-text" style="font-size: 24px;">Secure the Date</h2>
+            <p id="targetDateDisplay" style="color: #98fa9a; margin-bottom: 20px; font-weight: bold;"></p>
+            
+            <div class="booking-fields">
+                <label style="display:block; margin-bottom: 5px; font-size: 12px; color: #666;">FULL NAME</label>
+                <input type="text" id="clientName" placeholder="Enter your name">
+                
+                <label style="color: #98fa9a; font-weight: bold; display: block; margin-bottom: 8px;">
+                PREFERRED TIME (Hr:Min AM/PM)
+                </label>
+                <input type="time" id="bookingTime" required 
+                style="color-scheme: dark; font-family: inherit;">
+
+                <label style="display:block; margin-bottom: 5px; font-size: 12px; color: #666;">WHATSAPP NUMBER</label>
+                <input type="tel" id="clientPhone" value="+254" placeholder="+254...">
+                
+                <label style="display:block; margin-bottom: 5px; font-size: 12px; color: #666;">WHAT'S THE VIBE?</label>
+                <textarea id="bookingPurpose" placeholder="e.g. Meeting, Field Trip, Street Shoot..."></textarea>
+                
+                <button id="confirmBookingBtn" class="active-btn" style="width: 100%; padding: 15px; border-radius: 12px; border: none; background: #98fa9a; color: #000; font-weight: bold; cursor: pointer;">Request Booking</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="booking.js"></script>
+</body>
+</html>

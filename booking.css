@@ -1,0 +1,261 @@
+/* --- 1. GLOBAL RESET & SPACING --- */
+.booking-page {
+    background: #000 !important;
+    color: #fff;
+    font-family: 'Helvetica Neue', sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+.booking-container {
+    padding: 100px 25px 40px; /* Massive 100px top to clear the Bak button */
+    max-width: 500px; /* Keeps it tight and premium on mobile */
+    margin: 0 auto;
+}
+
+/* --- 2. HIGH-END RECTANGLE BAK BUTTON --- */
+.bak-circle {
+    position: fixed; /* Locked at the top */
+    top: 20px;
+    left: 20px;
+    height: 35px;
+    padding: 0 25px;
+    background: #111 !important;
+    border: 1px solid #333;
+    border-radius: 6px; /* Clean Rectangle */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #98fa9a !important;
+    text-decoration: none;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 900;
+    z-index: 10005; /* Master level */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+/* --- 3. THE HEADER (BREATHING ROOM) --- */
+.booking-header {
+    margin-bottom: 40px;
+}
+
+.nature-text {
+    font-size: 32px !important;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.sub-vibe {
+    color: #555;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+
+/* --- 4. THE CALENDAR LEDGER --- */
+.glass {
+    background: #0a0a0a !important; /* Solid black-gray */
+    border: 1px solid #1a1a1a;
+    border-radius: 24px;
+    padding: 30px 20px; /* Room inside the card */
+    margin-bottom: 30px;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+#monthDisplay {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-size: 12px;
+    color: #333; /* Subdued labels */
+    margin-bottom: 20px;
+    font-weight: 900;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+}
+
+/* THE DAY FIX: Added cursor and user-select */
+.day {
+    aspect-ratio: 1/1;
+    background: #121212;
+    border: 1px solid #1f1f1f;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: #fff;
+    cursor: pointer !important; /* FORCES THE HAND POINTER */
+    user-select: none; /* Prevents text highlighting */
+    transition: 0.2s all ease;
+}
+
+.day:hover {
+    border-color: #98fa9a;
+    background: rgba(152, 250, 154, 0.05);
+}
+
+.day.selected {
+    background: #98fa9a !important;
+    color: #000 !important;
+    font-weight: 900;
+    border-color: #98fa9a;
+}
+
+.day.booked {
+    opacity: 0.2;
+    cursor: not-allowed !important;
+    text-decoration: line-through;
+}
+
+/* --- 5. THE STATUS TRACKER (CENTERED) --- */
+.status-tracker {
+    padding: 30px;
+    text-align: center;
+}
+
+#trackerMessage {
+    color: #666;
+    font-size: 13px;
+}
+
+/* --- 6. THE MODAL (SOLID BLACK) --- */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 10006;
+    display: flex;
+    align-items: center;
+    visibility: hidden;
+    opacity: 0;
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-overlay.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* --- MODAL BOX (No longer wall-to-wall) --- */
+/* --- UPDATED MODAL CARD --- */
+.modal-card {
+    width: 90%; 
+    max-width: 450px;
+    max-height: 85vh; /* Prevents overflow on small screens */
+    margin: 0 auto 30px; 
+    background: #0d0d0d !important; /* Solid dark background */
+    padding: 35px 25px;
+    border: 1px solid #222;
+    border-top: 3px solid #98fa9a;
+    border-radius: 24px;
+    position: relative;
+    scrollbar-width: thin;
+    overflow-y: auto; /* Makes it scrollable if content is long */
+}
+
+/* Hide scrollbar for aesthetics */
+.modal-card::-webkit-scrollbar { display: none;
+width: 0px; }
+  
+@media (max-width: 768px) {
+    .modal-overlay { align-items: flex-end; } /* Slide up feel for mobile */
+    .modal-card { margin-bottom: 20px; }
+}
+
+/* Labels for breathing room */
+.booking-fields label {
+    display: block;
+    color: #98fa9a;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+/* Time Input Styling */
+#bookingTime {
+    background: #000 !important;
+    border: 1px solid #333 !important;
+    color: #fff !important;
+    padding: 15px;
+    width: 100%;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+input[type="time"] {
+    width: 100%;
+    background: #000 !important;
+    border: 1px solid #333 !important;
+    color: #fff !important;
+    padding: 15px;
+    border-radius: 12px;
+    font-size: 18px;
+    margin-bottom: 20px;
+    appearance: none; /* Removes default browser styling */
+    -webkit-appearance: none;
+}
+
+/* --- THE X BUTTON FIX --- */
+.close-modal {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 28px;
+    color: #444;
+    cursor: pointer !important; /* FORCES HAND POINTER */
+    user-select: none;
+    line-height: 1;
+}
+
+.close-modal:hover {
+    color: #ff4d4d;
+}
+
+.booking-fields input, .booking-fields textarea {
+    width: 100%;
+    background: #000 !important;
+    border: 1px solid #222 !important;
+    color: white !important;
+    padding: 18px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    font-size: 16px;
+}
+
+.status-tracker {
+    background: #0a0a0a !important;
+    border: 1px solid #1a1a1a;
+    padding: 25px !important;
+    border-radius: 15px;
+    margin-top: 30px;
+}
+
+sup {
+    font-size: 0.6em;
+    color: #98fa9a;
+    vertical-align: super;
+}
