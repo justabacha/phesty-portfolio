@@ -24,15 +24,17 @@
         <p class="ledger-subtitle">Manage your session requests</p>
     </div>
 
-    <div class="calendar-container">
-        <div class="calendar-header">
-            <h3 id="monthDisplay">Month</h3>
-        </div>
-        <div class="calendar-grid-header">
-            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-        </div>
-        <div class="calendar-grid" id="calendarGrid"></div>
+   <div class="calendar-container">
+    <div class="calendar-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <button id="prevMonth" class="nav-btn"> &lt; </button>
+        <h3 id="monthDisplay">Month</h3>
+        <button id="nextMonth" class="nav-btn"> &gt; </button>
     </div>
+    <div class="calendar-grid-header">
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+    </div>
+    <div class="calendar-grid" id="calendarGrid"></div>
+</div>
 
     <div class="ledger-container" id="mainLedgerContainer">
         <div class="section-wrapper">
@@ -61,6 +63,12 @@
         <div class="section-wrapper">
             <span class="info-label">✕ DECLINED / TRASH</span>
             <div id="declinedList"></div>
+        </div>
+        <hr class="section-divider">
+
+        <div class="section-wrapper">
+            <span class="info-label">📁 ARCHIVE (CLEARED MONTHLY)</span>
+            <div id="archiveList"></div>
         </div>
     </div>
 

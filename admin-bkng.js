@@ -2,28 +2,47 @@ const SUPABASE_URL = 'https://lrlfnfuymbjdxixlttmk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_jddfRqXC9UkFaUOQ0n2O-Q_slOWTPIo'; 
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-document.addEventListener('DOMContentLoaded', fetchBookings);
+// Keep track of which month the admin is looking at
+let currentViewDate = new Date();
+
+document.addEventListener('DOMContentLoaded', () => {
+    fetchBookings();
+    
+    // Set up Nav Buttons
+    document.getElementById('prevMonth').onclick = () => {
+        currentViewDate.setMonth(currentViewDate.getMonth() - 1);
+        fetchBookings();
+    };
+    document.getElementById('nextMonth').onclick = () => {
+        currentViewDate.setMonth(currentViewDate.getMonth() + 1);
+        fetchBookings();
+    };
+});
 
 async function fetchBookings() {
+    console.log("Fetching fresh data...");
     const { data, error } = await _supabase.from('bookings').select('*').order('created_at', { ascending: false });
-    if (error) return console.error(error);
+    if (error) return console.error("DB Error:", error);
 
-    // Filter by month so Feb doesn't show in March
-    const now = new Date();
-    const currentMonth = now.getMonth() + 1; // JS is 0-indexed
-    const currentYear = now.getFullYear();
+    // 1. Handle Calendar Logic
+    const viewMonth = currentViewDate.getMonth();
+    const viewYear = currentViewDate.getFullYear();
 
-    const currentMonthData = data.filter(b => {
+    // Filter confirmed bookings for the CURRENTLY VIEWED month
+    const confirmedForMonth = data.filter(b => {
         const bDate = new Date(b.booking_date);
-        return (bDate.getMonth() + 1) === currentMonth && bDate.getFullYear() === currentYear;
+        return b.status === 'confirmed' && 
+               bDate.getMonth() === viewMonth && 
+               bDate.getFullYear() === viewYear;
     });
 
-    renderCalendar(currentMonthData.filter(b => b.status === 'confirmed'));
+    renderCalendar(confirmedForMonth, viewMonth, viewYear);
 
-    // Clear Lists
-    const lists = ['pendingList', 'approvedList', 'declinedList', 'completedList'];
-    lists.forEach(id => document.getElementById(id).innerHTML = "");
+    // 2. Clear all Lists
+    const lists = ['pendingList', 'approvedList', 'declinedList', 'completedList', 'archiveList'];
+    lists.forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = ""; });
 
+    // 3. Place Cards
     data.forEach(booking => {
         if (booking.status === 'completed') {
             renderCompletedRow(booking);
@@ -32,8 +51,43 @@ async function fetchBookings() {
             if (booking.status === 'pending') document.getElementById('pendingList').appendChild(card);
             else if (booking.status === 'confirmed') document.getElementById('approvedList').appendChild(card);
             else if (booking.status === 'declined') document.getElementById('declinedList').appendChild(card);
+            else if (booking.status === 'archived') document.getElementById('archiveList').appendChild(card);
         }
     });
+}
+
+function renderCalendar(confirmed, month, year) {
+    const grid = document.getElementById('calendarGrid');
+    const monthLabel = document.getElementById('monthDisplay');
+    
+    const tempDate = new Date(year, month, 1);
+    monthLabel.innerText = tempDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const busyDays = confirmed.map(b => parseInt(b.booking_date.split('-')[2]));
+
+    grid.innerHTML = "";
+    
+    // Monday start shift
+    const offset = firstDay === 0 ? 6 : firstDay - 1;
+    for (let i = 0; i < offset; i++) grid.appendChild(document.createElement('div'));
+    
+    const today = new Date();
+    for (let d = 1; d <= daysInMonth; d++) {
+        const cell = document.createElement('div');
+        cell.className = "cal-cell";
+        
+        if (busyDays.includes(d)) cell.classList.add('busy');
+        
+        // Highlight Today only if we are looking at the actual current month/year
+        if (d === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+            cell.classList.add('today');
+        }
+
+        cell.textContent = d;
+        grid.appendChild(cell);
+    }
 }
 
 function createCard(b) {
@@ -43,12 +97,11 @@ function createCard(b) {
 
     cardDiv.classList.add(b.status);
     cardDiv.querySelector('.client-name').textContent = b.client_name;
-    cardDiv.querySelector('.request-date').textContent = b.booking_date;
+    cardDiv.querySelector('.request-date').textContent = `${b.booking_date} @ ${b.booking_time}`;
     
-    // Deep Details for Expansion
     cardDiv.querySelector('.det-phone').textContent = b.client_phone;
     cardDiv.querySelector('.det-time').textContent = b.booking_time;
-    cardDiv.querySelector('.purpose-text').textContent = b.purpose || "No specific purpose provided.";
+    cardDiv.querySelector('.purpose-text').textContent = b.purpose || "No message provided.";
 
     cardDiv.querySelector('.card-main').onclick = () => cardDiv.classList.toggle('active');
 
@@ -62,8 +115,12 @@ function createCard(b) {
         actions.innerHTML = `<button class="btn-wa">WHATSAPP</button><button class="btn-confirm" style="background:#98fa9a; color:#000;">DONE</button>`;
         actions.querySelector('.btn-wa').onclick = () => openWA(b);
         actions.querySelector('.btn-confirm').onclick = () => updateStatus(b.id, 'completed');
-    } else {
-        actions.innerHTML = `<button class="btn-purge">PURGE</button>`;
+    } else if (b.status === 'declined') {
+        actions.innerHTML = `<button class="btn-wa">WHATSAPP</button><button class="btn-purge">PURGE</button>`;
+        actions.querySelector('.btn-wa').onclick = () => openWA(b);
+        actions.querySelector('.btn-purge').onclick = () => deleteEntry(b.id);
+    } else if (b.status === 'archived') {
+        actions.innerHTML = `<button class="btn-purge">DELETE</button>`;
         actions.querySelector('.btn-purge').onclick = () => deleteEntry(b.id);
     }
 
@@ -77,53 +134,28 @@ function renderCompletedRow(b) {
         <td>${b.client_name}</td>
         <td>${b.client_phone}</td>
         <td>${b.booking_date}</td>
-        <td>
-    <button onclick="deleteEntry('${b.id}')" 
-            style="background: #333; color: #ff4d4d; border: 1px solid #ff4d4d44; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 10px;">
-        ARCHIVE
-    </button>
-</td>
+        <td><button class="arch-btn" style="background: #333; color: #ff4d4d; border: 1px solid #ff4d4d44; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 10px;">ARCHIVE</button></td>
     `;
+    row.querySelector('.arch-btn').onclick = () => updateStatus(b.id, 'archived');
     tbody.appendChild(row);
 }
 
-function renderCalendar(confirmed) {
-    const grid = document.getElementById('calendarGrid');
-    const monthLabel = document.getElementById('monthDisplay');
-    const now = new Date();
-    monthLabel.innerText = now.toLocaleString('default', { month: 'long', year: 'numeric' });
-
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).getDay();
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    const busyDays = confirmed.map(b => parseInt(b.booking_date.split('-')[2]));
-
-    grid.innerHTML = "";
-    const offset = firstDay === 0 ? 6 : firstDay - 1;
-    for (let i = 0; i < offset; i++) grid.appendChild(document.createElement('div'));
-    
-    for (let d = 1; d <= daysInMonth; d++) {
-        const cell = document.createElement('div');
-        cell.className = "cal-cell";
-        if (busyDays.includes(d)) cell.classList.add('busy');
-        if (d === now.getDate()) cell.classList.add('today'); // HIGHLIGHT TODAY
-        cell.textContent = d;
-        grid.appendChild(cell);
-    }
-}
-
 async function updateStatus(id, newStatus) {
-    const { data, error } = await _supabase.from('bookings').update({ status: newStatus }).eq('id', id).select();
+    const { error } = await _supabase.from('bookings').update({ status: newStatus }).eq('id', id);
     if (!error) fetchBookings();
-    else alert("Update failed: " + error.message);
+    else alert("Error: " + error.message);
 }
 
 async function deleteEntry(id) {
-    if (!confirm("Delete this permanently?")) return;
+    if (!confirm("Purge this record?")) return;
     const { error } = await _supabase.from('bookings').delete().eq('id', id);
     if (!error) fetchBookings();
 }
 
 function openWA(b) {
     const phone = b.client_phone.replace(/\D/g, '');
-    window.open(`https://wa.me/${phone}?text=Hi ${b.client_name}, your session is set!`, '_blank');
+    let msg = b.status === 'declined' 
+        ? `Hey ${b.client_name}, Phestone here. I'm fully booked for that slot, sorry!` 
+        : `Yo ${b.client_name}, Phestone here. Your session for ${b.booking_date} is LOCKED IN!`;
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
 }
