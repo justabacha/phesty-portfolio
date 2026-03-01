@@ -5,33 +5,34 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 document.addEventListener('DOMContentLoaded', fetchBookings);
 
 async function fetchBookings() {
-    console.log("Fetching fresh data...");
-    const { data, error } = await _supabase
-        .from('bookings')
-        .select('*')
-        .order('created_at', { ascending: false });
+    const { data, error } = await _supabase.from('bookings').select('*').order('created_at', { ascending: false });
+    if (error) return console.error(error);
 
-    if (error) return console.error("DB Error:", error);
+    // Filter by month so Feb doesn't show in March
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1; // JS is 0-indexed
+    const currentYear = now.getFullYear();
 
-    // 1. Setup Calendar
-    renderCalendar(data.filter(b => b.status === 'confirmed'));
+    const currentMonthData = data.filter(b => {
+        const bDate = new Date(b.booking_date);
+        return (bDate.getMonth() + 1) === currentMonth && bDate.getFullYear() === currentYear;
+    });
 
-    // 2. Clear current lists
-    const pendingDiv = document.getElementById('pendingList');
-    const approvedDiv = document.getElementById('approvedList');
-    const declinedDiv = document.getElementById('declinedList');
-    
-    pendingDiv.innerHTML = "";
-    approvedDiv.innerHTML = "";
-    declinedDiv.innerHTML = "";
+    renderCalendar(currentMonthData.filter(b => b.status === 'confirmed'));
 
-    // 3. Build and Place Cards
+    // Clear Lists
+    const lists = ['pendingList', 'approvedList', 'declinedList', 'completedList'];
+    lists.forEach(id => document.getElementById(id).innerHTML = "");
+
     data.forEach(booking => {
-        const card = createCard(booking);
-        
-        if (booking.status === 'pending') pendingDiv.appendChild(card);
-        else if (booking.status === 'confirmed') approvedDiv.appendChild(card);
-        else if (booking.status === 'declined') declinedDiv.appendChild(card);
+        if (booking.status === 'completed') {
+            renderCompletedRow(booking);
+        } else {
+            const card = createCard(booking);
+            if (booking.status === 'pending') document.getElementById('pendingList').appendChild(card);
+            else if (booking.status === 'confirmed') document.getElementById('approvedList').appendChild(card);
+            else if (booking.status === 'declined') document.getElementById('declinedList').appendChild(card);
+        }
     });
 }
 
@@ -40,35 +41,50 @@ function createCard(b) {
     const clone = template.content.cloneNode(true);
     const cardDiv = clone.querySelector('.booking-card');
 
-    // Fill Data
     cardDiv.classList.add(b.status);
     cardDiv.querySelector('.client-name').textContent = b.client_name;
-    cardDiv.querySelector('.request-date').textContent = `${b.booking_date} @ ${b.booking_time}`;
-    cardDiv.querySelector('.purpose-text').textContent = b.purpose || "No message provided.";
+    cardDiv.querySelector('.request-date').textContent = b.booking_date;
+    
+    // Deep Details for Expansion
+    cardDiv.querySelector('.det-phone').textContent = b.client_phone;
+    cardDiv.querySelector('.det-time').textContent = b.booking_time;
+    cardDiv.querySelector('.purpose-text').textContent = b.purpose || "No specific purpose provided.";
 
-    // Toggle Expansion
     cardDiv.querySelector('.card-main').onclick = () => cardDiv.classList.toggle('active');
 
-    // Build Buttons
-    const actionArea = cardDiv.querySelector('.ledger-actions');
+    const actions = cardDiv.querySelector('.ledger-actions');
     
     if (b.status === 'pending') {
-        actionArea.innerHTML = `
-            <button class="btn-confirm">APPROVE</button>
-            <button class="btn-delete">DECLINE</button>
-        `;
-        actionArea.querySelector('.btn-confirm').onclick = () => updateStatus(b.id, 'confirmed');
-        actionArea.querySelector('.btn-delete').onclick = () => updateStatus(b.id, 'declined');
+        actions.innerHTML = `<button class="btn-confirm">APPROVE</button><button class="btn-delete">DECLINE</button>`;
+        actions.querySelector('.btn-confirm').onclick = () => updateStatus(b.id, 'confirmed');
+        actions.querySelector('.btn-delete').onclick = () => updateStatus(b.id, 'declined');
+    } else if (b.status === 'confirmed') {
+        actions.innerHTML = `<button class="btn-wa">WHATSAPP</button><button class="btn-confirm" style="background:#98fa9a; color:#000;">DONE</button>`;
+        actions.querySelector('.btn-wa').onclick = () => openWA(b);
+        actions.querySelector('.btn-confirm').onclick = () => updateStatus(b.id, 'completed');
     } else {
-        actionArea.innerHTML = `
-            <button class="btn-wa">WHATSAPP</button>
-            <button class="btn-purge">PURGE</button>
-        `;
-        actionArea.querySelector('.btn-wa').onclick = () => openWA(b);
-        actionArea.querySelector('.btn-purge').onclick = () => deleteEntry(b.id);
+        actions.innerHTML = `<button class="btn-purge">PURGE</button>`;
+        actions.querySelector('.btn-purge').onclick = () => deleteEntry(b.id);
     }
 
     return clone;
+}
+
+function renderCompletedRow(b) {
+    const tbody = document.getElementById('completedList');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>${b.client_name}</td>
+        <td>${b.client_phone}</td>
+        <td>${b.booking_date}</td>
+        <td>
+    <button onclick="deleteEntry('${b.id}')" 
+            style="background: #333; color: #ff4d4d; border: 1px solid #ff4d4d44; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 10px;">
+        ARCHIVE
+    </button>
+</td>
+    `;
+    tbody.appendChild(row);
 }
 
 function renderCalendar(confirmed) {
@@ -82,56 +98,32 @@ function renderCalendar(confirmed) {
     const busyDays = confirmed.map(b => parseInt(b.booking_date.split('-')[2]));
 
     grid.innerHTML = "";
-    
-    // Shift for Monday start (JS 0 is Sunday)
     const offset = firstDay === 0 ? 6 : firstDay - 1;
     for (let i = 0; i < offset; i++) grid.appendChild(document.createElement('div'));
     
     for (let d = 1; d <= daysInMonth; d++) {
         const cell = document.createElement('div');
-        cell.className = `cal-cell ${busyDays.includes(d) ? 'busy' : ''}`;
+        cell.className = "cal-cell";
+        if (busyDays.includes(d)) cell.classList.add('busy');
+        if (d === now.getDate()) cell.classList.add('today'); // HIGHLIGHT TODAY
         cell.textContent = d;
         grid.appendChild(cell);
     }
 }
 
-// Add this at the very top of admin-bkng.js to clear any cache issues
-console.log("🚀 PHESTONE ADMIN SYSTEM INITIALIZED");
-
 async function updateStatus(id, newStatus) {
-    // Force ID to string and trim any hidden spaces
-    const cleanId = String(id).trim();
-    console.log(`📡 Sending Update: ID [${cleanId}] to [${newStatus}]`);
-    
-    const { data, error } = await _supabase
-        .from('bookings')
-        .update({ status: newStatus })
-        .eq('id', cleanId)
-        .select(); 
-
-    if (error) {
-        console.error("❌ SUPABASE ERROR:", error.message);
-        alert("Database Error: " + error.message);
-    } else if (data && data.length > 0) {
-        console.log("✅ SUCCESS:", data[0]);
-        // Remove the alert once you see it working to keep it smooth
-        fetchBookings(); 
-    } else {
-        console.warn("⚠️ No rows changed. This is usually an RLS Policy issue.");
-        alert("System connected, but Supabase RLS is blocking the update. Check your Policies!");
-    }
+    const { data, error } = await _supabase.from('bookings').update({ status: newStatus }).eq('id', id).select();
+    if (!error) fetchBookings();
+    else alert("Update failed: " + error.message);
 }
 
 async function deleteEntry(id) {
-    if (!confirm("Purge this record?")) return;
+    if (!confirm("Delete this permanently?")) return;
     const { error } = await _supabase.from('bookings').delete().eq('id', id);
     if (!error) fetchBookings();
 }
 
 function openWA(b) {
-    const msg = b.status === 'confirmed' 
-        ? `Yo ${b.client_name}, Phestone here. Your session for ${b.booking_date} is LOCKED IN!` 
-        : `Hey ${b.client_name}, Phestone here. I'm fully booked for that slot, sorry!`;
     const phone = b.client_phone.replace(/\D/g, '');
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/${phone}?text=Hi ${b.client_name}, your session is set!`, '_blank');
 }

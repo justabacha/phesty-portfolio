@@ -74,24 +74,37 @@ async function checkExistingBooking() {
     const tracker = document.getElementById('trackerMessage');
     if (!tracker) return;
 
-    // SYNC WITH SUPABASE
+    // SYNC WITH SUPABASE (Fetch ID and Status)
     try {
-        const { data: remoteBookings } = await _supabase.from('bookings').select('id');
+        const { data: remoteBookings } = await _supabase
+            .from('bookings')
+            .select('id, status');
+
         if (remoteBookings) {
             const remoteIds = remoteBookings.map(b => b.id.toString());
-            myBookings = myBookings.filter(local => remoteIds.includes(local.id.toString()));
+            
+            // Filter out deleted bookings and update status for remaining ones
+            myBookings = myBookings
+                .filter(local => remoteIds.includes(local.id.toString()))
+                .map(local => {
+                    const remoteMatch = remoteBookings.find(r => r.id.toString() === local.id.toString());
+                    return { ...local, status: remoteMatch ? remoteMatch.status : 'pending' };
+                });
+
             localStorage.setItem('phesty_bookings', JSON.stringify(myBookings));
         }
-    } catch (e) {}
+    } catch (e) {
+        console.error("Sync error:", e);
+    }
 
-    // 1. EMPTY STATE: "Choose date" message
+    // 1. EMPTY STATE
     if (myBookings.length === 0) {
         tracker.style.textAlign = "center";
         tracker.innerHTML = `<p style="color: #444; font-size: 14px; margin-top: 20px;">Choose a date on the calendar to check availability.</p>`;
         return;
     }
 
-    // 2. RECEIPT STATE: Neon Left Border included
+    // 2. RECEIPT STATE
     tracker.style.textAlign = "left"; 
     tracker.innerHTML = ""; 
 
@@ -102,24 +115,37 @@ async function checkExistingBooking() {
         const dayNum = d.getDate();
         const suffix = (dayNum % 10 === 1 && dayNum !== 11) ? "st" : (dayNum % 10 === 2 && dayNum !== 12) ? "nd" : (dayNum % 10 === 3 && dayNum !== 13) ? "rd" : "th";
 
+        // Dynamic Status Logic
+        let statusText = "Awaiting Review, Phestone will get back to you soon.";
+        let statusColor = "#07d2fa"; // Neon Blue
+
+        if (b.status === 'confirmed') {
+            statusText = "Phestone just Confirmed the Session";
+            statusColor = "#f7fbf7"; // Neon Green
+        } else if (b.status === 'declined') {
+            statusText = "Request Declined";
+            statusColor = "#ff4d4d"; // Red
+        }
+
         tracker.innerHTML += `
             <div class="receipt-card">
                 <span onclick="window.withdrawBooking('${b.id}')" style="position: absolute; top: 15px; right: 15px; color: #ff4d4d; font-size: 10px; cursor: pointer; font-weight: 900; border: 1px solid #ff4d4d44; padding: 4px 8px; border-radius: 4px; background: #000;">WITHDRAW</span>
                 
-                <p style="color: #444; font-size: 11px; font-weight: 800; margin-bottom: 10px;">
-                    ${b.log} <span style="margin-left:10px; color:#222;">>></span> <span style="color:#98fa9a; margin-left:10px;">REQUEST LOGGED</span>
+                <p style="color: #fdf3f3; font-size: 11px; font-weight: 800; margin-bottom: 10px;">
+                    ${b.log} <span style="margin-left:10px; color:#fdf3f3;">>></span> <span style="color:#98fa9a; margin-left:10px;">REQUEST LOGGED</span>
                 </p>
                 
                 <p style="color: #fff; margin: 0; font-size: 13px; opacity: 0.7;">Session requested for:</p>
                 <p style="color: #fff; margin: 5px 0 0; font-size: 18px; font-weight: 800;">
                     ${dayName}, <span style="color:#98fa9a;">${monthName} ${dayNum}<sup>${suffix}</sup></span>
                 </p>
-                <p style="color: #98fa9a; margin: 2px 0 0; font-size: 22px; font-weight: 900;">@ ${b.time}</p>
+                <p style="color: #74f974; margin: 2px 0 0; font-size: 22px; font-weight: 900;">@ ${b.time}</p>
                 
-                <p style="color: #555; font-size: 10px; margin-top: 15px; text-transform: uppercase;">Status: <span style="color: #07d2fa; font-weight: 800;">Awaiting Review</span></p>
+                <p style="color: #92dafc; font-size: 10px; margin-top: 15px; text-transform: uppercase;">Status: <span style="color: ${statusColor}; font-weight: 800;">${statusText}</span></p>
             </div>
         `;
     });
+
     tracker.innerHTML += `<p style="margin-top: 20px; color: #333; font-size: 11px; text-align: center; font-style: italic; opacity: 0.6;">"Your creative window is being prioritized. Stay tuned."</p>`;
 }
 

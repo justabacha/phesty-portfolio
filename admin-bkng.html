@@ -7,10 +7,17 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="ledger.css">
+    <style>
+        /* Today Highlight */
+        .cal-cell.today { border: 2px solid #ffeb3b !important; box-shadow: 0 0 8px #ffeb3b88; }
+        .completed-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; color: #eee; }
+        .completed-table th { text-align: left; padding: 8px; border-bottom: 1px solid #333; color: #98fa9a; }
+        .completed-table td { padding: 8px; border-bottom: 1px solid #222; }
+    </style>
 </head>
 <body>
 
-    <button class="back-nav-btn" onclick="window.location.href='admin.html'">← BACK</button>
+    <button class="back-nav-btn" onclick="window.location.href='admin.html'">BACK</button>
 
     <div class="ledger-header">
         <h1 class="nature-text">Client Ledger</h1>
@@ -33,13 +40,26 @@
             <div id="pendingList"></div>
         </div>
         <hr class="section-divider">
+        
         <div class="section-wrapper">
             <span class="info-label">✓ CONFIRMED COMMITS</span>
             <div id="approvedList"></div>
         </div>
         <hr class="section-divider">
+
         <div class="section-wrapper">
-            <span class="info-label">✕ DECLINED</span>
+            <span class="info-label">✪ COMPLETED TASKS</span>
+            <table class="completed-table">
+                <thead>
+                    <tr><th>Client</th><th>Contact</th><th>Time</th><th>Action</th></tr>
+                </thead>
+                <tbody id="completedList"></tbody>
+            </table>
+        </div>
+        <hr class="section-divider">
+
+        <div class="section-wrapper">
+            <span class="info-label">✕ DECLINED / TRASH</span>
             <div id="declinedList"></div>
         </div>
     </div>
@@ -55,7 +75,11 @@
             </div>
             <div class="card-expand">
                 <div class="expand-inner">
-                    <p class="purpose-text"></p>
+                    <div class="deep-details" style="margin-bottom: 15px; font-size: 13px; border-left: 2px solid #98fa9a; padding-left: 10px;">
+                        <p><strong>Contact:</strong> <span class="det-phone"></span></p>
+                        <p><strong>Time Slot:</strong> <span class="det-time"></span></p>
+                        <p><strong>Purpose:</strong> <span class="purpose-text"></span></p>
+                    </div>
                     <div class="ledger-actions"></div>
                 </div>
             </div>
