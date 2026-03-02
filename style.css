@@ -575,7 +575,7 @@ body {
     /* Position it above the Street photo stack */
     position: absolute;
     left: 20px;
-    bottom: 35%; /* Adjust this based on your screen height to sit just above the stack */
+    bottom: 70%; /* Adjust this based on your screen height to sit just above the stack */
     z-index: 100;
 
     /* Glassmorphism Core */
