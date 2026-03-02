@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCalendar(currentMonth, currentYear);
     setupEventListeners();
     checkExistingBooking();
+    setInterval(checkExistingBooking, 10000);
 });
 
 async function renderCalendar(month, year) {
@@ -72,42 +73,35 @@ window.withdrawBooking = async function(id) {
 async function checkExistingBooking() {
     let myBookings = JSON.parse(localStorage.getItem('phesty_bookings') || "[]");
     const tracker = document.getElementById('trackerMessage');
-    if (!tracker) return;
-
-    // SYNC WITH SUPABASE (Fetch ID and Status)
-    try {
-        const { data: remoteBookings } = await _supabase
-            .from('bookings')
-            .select('id, status');
-
-        if (remoteBookings) {
-            const remoteIds = remoteBookings.map(b => b.id.toString());
-            
-            // Filter out deleted bookings and update status for remaining ones
-            myBookings = myBookings
-                .filter(local => remoteIds.includes(local.id.toString()))
-                .map(local => {
-                    const remoteMatch = remoteBookings.find(r => r.id.toString() === local.id.toString());
-                    return { ...local, status: remoteMatch ? remoteMatch.status : 'pending' };
-                });
-
-            localStorage.setItem('phesty_bookings', JSON.stringify(myBookings));
-        }
-    } catch (e) {
-        console.error("Sync error:", e);
-    }
-
-    // 1. EMPTY STATE
-    if (myBookings.length === 0) {
-        tracker.style.textAlign = "center";
-        tracker.innerHTML = `<p style="color: #444; font-size: 14px; margin-top: 20px;">Choose a date on the calendar to check availability.</p>`;
+    if (!tracker || myBookings.length === 0) {
+        if (tracker) tracker.innerHTML = `<p style="color: #444; text-align:center; font-size: 14px; margin-top: 20px;">Choose a date on the calendar to check availability.</p>`;
         return;
     }
 
-    // 2. RECEIPT STATE
-    tracker.style.textAlign = "left"; 
-    tracker.innerHTML = ""; 
+    try {
+        // Fetch bookings AND their reviews to check for the 'Like'
+        const { data: remoteData } = await _supabase
+            .from('bookings')
+            .select('id, status, reviews(is_liked)')
+            .in('id', myBookings.map(b => b.id));
 
+        if (remoteData) {
+            myBookings = myBookings.map(local => {
+                const remoteMatch = remoteData.find(r => r.id.toString() === local.id.toString());
+                if (remoteMatch) {
+                    return { 
+                        ...local, 
+                        status: remoteMatch.status, 
+                        isLiked: remoteMatch.reviews?.[0]?.is_liked || false 
+                    };
+                }
+                return local;
+            });
+            localStorage.setItem('phesty_bookings', JSON.stringify(myBookings));
+        }
+    } catch (e) { console.error("Sync error:", e); }
+
+    tracker.innerHTML = ""; 
     myBookings.forEach(b => {
         const d = new Date(b.date);
         const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
@@ -115,42 +109,28 @@ async function checkExistingBooking() {
         const dayNum = d.getDate();
         const suffix = (dayNum % 10 === 1 && dayNum !== 11) ? "st" : (dayNum % 10 === 2 && dayNum !== 12) ? "nd" : (dayNum % 10 === 3 && dayNum !== 13) ? "rd" : "th";
 
-      // Dynamic Status Logic
         let statusText = "Awaiting Review, Phestone will get back to you soon.";
-        let statusColor = "#07d2fa"; // Neon Blue
-        let isFinal = false;
+        let statusColor = "#07d2fa";
+        let isFinal = (b.status === 'completed' || b.status === 'archived');
 
-        if (b.status === 'confirmed') {
-            statusText = "Phestone just Confirmed the Session";
-            statusColor = "#f7fbf7"; // Neon Green
-        } else if (b.status === 'declined') {
-            statusText = "Request Declined";
-            statusColor = "#ff4d4d"; // Red
-        } else if (b.status === 'completed' || b.status === 'archived') {
-            statusText = "MISSION COMPLETE";
-            statusColor = "#98fa9a"; // Neon Green
-            isFinal = true;
-        }
+        if (b.status === 'confirmed') { statusText = "Phestone just Confirmed the Session"; statusColor = "#f7fbf7"; }
+        else if (b.status === 'declined') { statusText = "Request Declined"; statusColor = "#ff4d4d"; }
+        else if (isFinal) { statusText = "MISSION COMPLETE"; statusColor = "#98fa9a"; }
 
-      tracker.innerHTML += `
-            <div class="receipt-card" style="position:relative; margin-bottom:20px;">
-                ${!isFinal ? `<span onclick="window.withdrawBooking('${b.id}')" style="position: absolute; top: 15px; right: 15px; color: #ff4d4d; font-size: 10px; cursor: pointer; font-weight: 900; border: 1px solid #ff4d4d44; padding: 4px 8px; border-radius: 4px; background: #000;">WITHDRAW</span>` : ''}
-                
-                <p style="color: #fdf3f3; font-size: 11px; font-weight: 800; margin-bottom: 10px;">
-                    ${b.log} <span style="margin-left:10px; color:#fdf3f3;">>></span> <span style="color:#98fa9a; margin-left:10px;">${isFinal ? 'SESSION FINISHED' : 'REQUEST LOGGED'}</span>
-                </p>
-                
-                <p style="color: #fff; margin: 0; font-size: 13px; opacity: 0.7;">Session ${isFinal ? 'held' : 'requested'} for:</p>
-                <p style="color: #fff; margin: 5px 0 0; font-size: 18px; font-weight: 800;">
-                    ${dayName}, <span style="color:#98fa9a;">${monthName} ${dayNum}<sup>${suffix}</sup></span>
-                </p>
-                <p style="color: #74f974; margin: 2px 0 0; font-size: 22px; font-weight: 900;">@ ${b.time}</p>
-                
-                <p style="color: #92dafc; font-size: 10px; margin-top: 15px; text-transform: uppercase;">Status: <span style="color: ${statusColor}; font-weight: 800;">${statusText}</span></p>
-
-               ${isFinal ? (localStorage.getItem(`reviewed_${b.id}`) ? 
-                    `<p style="color:#98fa9a; font-weight:800; text-align:center; padding:20px; border-top: 1px dashed #333; margin-top:20px;">✓ Review Submitted!</p>` 
-                    : `
+        // --- THE "LIKE" BADGE LOGIC ---
+        let reviewSection = '';
+        if (isFinal) {
+            if (b.isLiked) {
+                reviewSection = `
+                    <div class="glass-vibe" style="margin-top:20px; padding:15px; border-radius:12px; text-align:center; border: 1px solid rgba(152, 250, 154, 0.3); background: rgba(152, 250, 154, 0.05);">
+                        <p style="color:#98fa9a; font-weight:900; font-size:14px; margin:0; letter-spacing:1px; animation: soft-pulse 2s infinite;">
+                            ❤️ Phestone liked ur review! Thanks for the vibe.
+                        </p>
+                    </div>`;
+            } else if (localStorage.getItem(`reviewed_${b.id}`)) {
+                reviewSection = `<p style="color:#98fa9a; font-weight:800; text-align:center; padding:20px; border-top: 1px dashed #333; margin-top:20px;">✓ Review Submitted!</p>`;
+            } else {
+                reviewSection = `
                     <div id="review-form-${b.id}" style="margin-top:20px; padding-top:15px; border-top: 1px dashed #333;">
                         <p style="color:#fff; font-size:12px; margin-bottom:10px;">Rate the experience:</p>
                         <div class="star-rating" style="display:flex; flex-direction: row-reverse; justify-content: flex-end; gap:10px; margin-bottom:15px;">
@@ -161,13 +141,24 @@ async function checkExistingBooking() {
                         </div>
                         <textarea id="comment-${b.id}" placeholder="Drop a review..." style="width:100%; background:#111; border:1px solid #333; color:#fff; padding:10px; border-radius:8px; font-size:12px; height:60px;"></textarea>
                         <button id="rev-btn-${b.id}" onclick="window.submitReview('${b.id}', 'Client')" style="width:100%; margin-top:10px; background:#98fa9a; color:#000; border:none; padding:8px; border-radius:6px; font-weight:900; cursor:pointer;">SUBMIT REVIEW</button>
-                    </div>
-                `) : ''}
-            </div>
-        `;
-    });
+                    </div>`;
+            }
+        }
 
-    tracker.innerHTML += `<p style="margin-top: 20px; color: #333; font-size: 11px; text-align: center; font-style: italic; opacity: 0.6;">"Your creative window is being prioritized. Stay tuned."</p>`;
+        tracker.innerHTML += `
+            <div class="receipt-card" style="position:relative; margin-bottom:20px;">
+                ${!isFinal ? `<span onclick="window.withdrawBooking('${b.id}')" style="position: absolute; top: 15px; right: 15px; color: #ff4d4d; font-size: 10px; cursor: pointer; font-weight: 900; border: 1px solid #ff4d4d44; padding: 4px 8px; border-radius: 4px; background: #000;">WITHDRAW</span>` : ''}
+                <p style="color: #fdf3f3; font-size: 11px; font-weight: 800; margin-bottom: 10px;">
+                    ${b.log} <span style="margin-left:10px; color:#fdf3f3;">>></span> <span style="color:#98fa9a; margin-left:10px;">${isFinal ? 'SESSION FINISHED' : 'REQUEST LOGGED'}</span>
+                </p>
+                <p style="color: #fff; margin: 5px 0 0; font-size: 18px; font-weight: 800;">
+                    ${dayName}, <span style="color:#98fa9a;">${monthName} ${dayNum}<sup>${suffix}</sup></span>
+                </p>
+                <p style="color: #74f974; margin: 2px 0 0; font-size: 22px; font-weight: 900;">@ ${b.time}</p>
+                <p style="color: #92dafc; font-size: 10px; margin-top: 15px; text-transform: uppercase;">Status: <span style="color: ${statusColor}; font-weight: 800;">${statusText}</span></p>
+                ${reviewSection}
+            </div>`;
+    });
 }
 
 function setupEventListeners() {
