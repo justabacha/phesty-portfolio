@@ -1,17 +1,16 @@
 // notifications.js - Root Directory
 
 const setupRealtimeNotifications = () => {
-    console.log("Ghost Layer: System Active...");
-
     // 1. Identify User Role
-    // If your admin URL is like phesty.com/admin-bkng.html, this detects you
     const isAdmin = window.location.pathname.includes('admin'); 
+    
+    // IMPORTANT: This must match what you save when a client books!
     const myBookingId = localStorage.getItem('phesty_booking_id'); 
 
     _supabase
-        .channel('phesty-core-v2')
+        .channel('phesty-studio-final')
         
-        // --- ADMIN ALERTS (You see these on any page) ---
+        // --- ADMIN ONLY ALERTS ---
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bookings' }, (payload) => {
             if (isAdmin) showToast(`🔥 New Request: ${payload.new.client_name}`, "admin-bkng.html");
         })
@@ -21,25 +20,26 @@ const setupRealtimeNotifications = () => {
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'followers' }, (payload) => {
             if (isAdmin) showToast("👤 New Follower gained!", "index.html");
         })
+        // FIX: Photo Like Notification (Admin Only)
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'photos' }, (payload) => {
-            // Check if likes increased
-            if (isAdmin && (payload.new.likes > (payload.old.likes || 0))) {
+            if (isAdmin && payload.new.likes > (payload.old.likes || 0)) {
                 showToast(`💖 Someone liked a ${payload.new.category} photo!`, "gallery.html");
             }
         })
 
-        // --- CLIENT ALERTS (Targeted) ---
+        // --- TARGETED CLIENT ALERTS (No longer global) ---
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'bookings' }, (payload) => {
             const data = payload.new;
-            // Target the specific client by ID
+            // Only show to the specific client who owns this booking ID
             if (myBookingId && data.id.toString() === myBookingId) {
                 if (data.status === 'confirmed') showToast("✅ Phestone confirmed your session!", "booking.html");
                 if (data.status === 'completed') showToast("📸 Session Complete! Leave a review.", "booking.html");
+                if (data.status === 'declined') showToast("❌ Session Declined. Check your email.", "booking.html");
             }
         })
+        // FIX: Targeted Review Like (Only for the reviewer)
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'reviews' }, (payload) => {
-            // If Phestone likes a review, notify that client
-            if (payload.new.is_liked) {
+            if (payload.new.is_liked && myBookingId && payload.new.booking_id.toString() === myBookingId) {
                 showToast("❤️ Phestone loved your review!", "booking.html");
             }
         })
