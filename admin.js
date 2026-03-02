@@ -16,7 +16,7 @@ async function checkUser() {
         loginSection.classList.add('hidden');
         dashboardSection.classList.remove('hidden');
         loadManagementList(); 
-        loadFollowers(); // Load your fans on entry
+        loadFollowers(); 
     }
 }
 checkUser();
@@ -135,20 +135,22 @@ async function deletePhoto(id, url) {
 
 function toggleUploadModal(show) { uploadModal.classList.toggle('hidden', !show); }
 
+// --- 2. LOGIN LOGIC (No more Sign Up) ---
 async function handleLogin() {
-    const { error } = await _supabase.auth.signInWithPassword({
-        email: document.getElementById('email').value,
-        password: document.getElementById('password').value
-    });
-    error ? alert(error.message) : location.reload();
-}
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
 
-async function handleSignUp() {
-    const { error } = await _supabase.auth.signUp({
-        email: document.getElementById('email').value,
-        password: document.getElementById('password').value
+    const { data, error } = await _supabase.auth.signInWithPassword({
+        email: email,
+        password: password
     });
-    error ? alert(error.message) : alert("Check your email for the confirmation link!");
+
+    if (error) {
+        alert("Access Denied: " + error.message);
+    } else {
+        // Successful login
+        location.reload();
+    }
 }
 
 // Keeping your handleLogout even though the button is removed, just in case you use console

@@ -2,13 +2,12 @@ const SUPABASE_URL = 'https://lrlfnfuymbjdxixlttmk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_jddfRqXC9UkFaUOQ0n2O-Q_slOWTPIo'; 
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Keep track of which month the admin is looking at
 let currentViewDate = new Date();
 
 document.addEventListener('DOMContentLoaded', () => {
     fetchBookings();
     
-    // Set up Nav Buttons
+    // Month Navigation
     document.getElementById('prevMonth').onclick = () => {
         currentViewDate.setMonth(currentViewDate.getMonth() - 1);
         fetchBookings();
@@ -20,15 +19,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function fetchBookings() {
-    console.log("Fetching fresh data...");
     const { data, error } = await _supabase.from('bookings').select('*').order('created_at', { ascending: false });
     if (error) return console.error("DB Error:", error);
 
-    // 1. Handle Calendar Logic
     const viewMonth = currentViewDate.getMonth();
     const viewYear = currentViewDate.getFullYear();
 
-    // Filter confirmed bookings for the CURRENTLY VIEWED month
+    // Filter confirmed bookings for the calendar dots/colors
     const confirmedForMonth = data.filter(b => {
         const bDate = new Date(b.booking_date);
         return b.status === 'confirmed' && 
@@ -38,11 +35,11 @@ async function fetchBookings() {
 
     renderCalendar(confirmedForMonth, viewMonth, viewYear);
 
-    // 2. Clear all Lists
+    // Clear Lists
     const lists = ['pendingList', 'approvedList', 'declinedList', 'completedList', 'archiveList'];
     lists.forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = ""; });
 
-    // 3. Place Cards
+    // Build UI
     data.forEach(booking => {
         if (booking.status === 'completed') {
             renderCompletedRow(booking);
@@ -65,11 +62,13 @@ function renderCalendar(confirmed, month, year) {
 
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    // Map busy days to their dates for easy checking
     const busyDays = confirmed.map(b => parseInt(b.booking_date.split('-')[2]));
 
     grid.innerHTML = "";
     
-    // Monday start shift
+    // Monday start shift (Standard ISO)
     const offset = firstDay === 0 ? 6 : firstDay - 1;
     for (let i = 0; i < offset; i++) grid.appendChild(document.createElement('div'));
     
@@ -78,9 +77,12 @@ function renderCalendar(confirmed, month, year) {
         const cell = document.createElement('div');
         cell.className = "cal-cell";
         
-        if (busyDays.includes(d)) cell.classList.add('busy');
+        // --- COLOUR BOOKING LOGIC ---
+        if (busyDays.includes(d)) {
+            cell.classList.add('busy'); // This triggers your CSS color for booked slots
+        }
         
-        // Highlight Today only if we are looking at the actual current month/year
+        // Highlight Today
         if (d === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
             cell.classList.add('today');
         }
@@ -129,6 +131,7 @@ function createCard(b) {
 
 function renderCompletedRow(b) {
     const tbody = document.getElementById('completedList');
+    if(!tbody) return;
     const row = document.createElement('tr');
     row.innerHTML = `
         <td>${b.client_name}</td>
