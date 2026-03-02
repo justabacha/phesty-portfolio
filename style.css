@@ -573,7 +573,7 @@ body {
 }
 .booking-trigger {
     /* Position it above the Street photo stack */
-    position: absolute;
+    position: fixed;
     left: 20px; /* Adjust this based on your screen height to sit just above the stack */
     z-index: 100;
     margin-top: 20px;;
@@ -628,4 +628,33 @@ body {
 @keyframes glass-pulse {
     0% { transform: scale(1); opacity: 1; }
     100% { transform: scale(3); opacity: 0; }
+}
+@media (max-width: 600px) {
+    .booking-trigger-top {
+        top: 20px;
+        left: 20px;
+        padding: 8px 14px;
+        font-size: 10px;
+    }
+}
+.glass-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    width: 300px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: #fff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    animation: slideIn 0.5s ease forwards;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(120%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
