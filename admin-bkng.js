@@ -202,9 +202,10 @@ function renderReviewOnWall(review, booking) {
         <p style="color:#ffffff; font-size:13px; font-weight: 500; margin:5px 0; line-height:1.4;">${review.comment}</p>
         <div style="display:flex; gap:12px; margin-top:12px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:10px;">
             <button onclick="toggleLike('${review.id}', ${review.is_liked})" 
-    style="background:${review.is_liked ? '#98fa9a' : '#333'}; 
+    style="background:${review.is_liked ? '#98fa9a' : 'rgba(255,255,255,0.1)'}; 
            color:${review.is_liked ? '#000' : '#fff'}; 
-           border:none; cursor:pointer; font-size:11px; padding:6px 12px; border-radius:4px; font-weight:800;">
+           border:1px solid ${review.is_liked ? '#98fa9a' : '#444'}; 
+           cursor:pointer; font-size:11px; padding:6px 12px; border-radius:4px; font-weight:bold; transition: 0.3s;">
     ${review.is_liked ? '❤️ LIKED' : '♡ LIKE'}
 </button>
             <button onclick="deleteReview('${review.id}')" 
@@ -218,18 +219,24 @@ function renderReviewOnWall(review, booking) {
 
 // Add these new helper functions at the bottom of admin-bkng.js
 async function toggleLike(reviewId, currentStatus) {
-    console.log("Toggling like for:", reviewId, "New Status:", !currentStatus);
-    
-    const { error } = await _supabase
+    // Force the status to be a boolean
+    const isCurrentlyLiked = Boolean(currentStatus);
+    const nextStatus = !isCurrentlyLiked;
+
+    console.log(`Review: ${reviewId} | Was: ${isCurrentlyLiked} | Setting to: ${nextStatus}`);
+
+    const { data, error } = await _supabase
         .from('reviews')
-        .update({ is_liked: !currentStatus }) // Flips the boolean
-        .eq('id', reviewId);
+        .update({ is_liked: nextStatus })
+        .eq('id', reviewId)
+        .select(); // select() helps verify the change actually happened
 
     if (error) {
-        console.error("Like Error:", error.message);
-        alert("Failed to like: " + error.message);
+        console.error("Supabase Error:", error.message);
+        alert("DB Error: " + error.message);
     } else {
-        fetchBookings(); // Refresh the UI to show the heart
+        console.log("Update successful:", data);
+        await fetchBookings(); // Reload UI to show the color change
     }
 }
 
