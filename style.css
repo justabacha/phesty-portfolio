@@ -574,9 +574,9 @@ body {
 .booking-trigger {
     /* Position it above the Street photo stack */
     position: absolute;
-    left: 20px;
-    bottom: 70%; /* Adjust this based on your screen height to sit just above the stack */
+    left: 20px; /* Adjust this based on your screen height to sit just above the stack */
     z-index: 100;
+    margin-top: 20px;;
 
     /* Glassmorphism Core */
     display: flex;
