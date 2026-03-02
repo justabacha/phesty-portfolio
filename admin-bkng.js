@@ -201,12 +201,12 @@ function renderReviewOnWall(review, booking) {
         </div>
         <p style="color:#ffffff; font-size:13px; font-weight: 500; margin:5px 0; line-height:1.4;">${review.comment}</p>
         <div style="display:flex; gap:12px; margin-top:12px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:10px;">
-            <button onclick="toggleLike('${review.id}', ${!review.is_liked})" 
-                style="background:${review.is_liked ? '#98fa9a' : '#333'}; 
-                       color:${review.is_liked ? '#000' : '#fff'}; 
-                       border:none; cursor:pointer; font-size:11px; padding:6px 12px; border-radius:4px; font-weight:800; transition: 0.3s;">
-                ${review.is_liked ? '❤️ LIKED' : '♡ LIKE'}
-            </button>
+            <button onclick="toggleLike('${review.id}', ${review.is_liked})" 
+    style="background:${review.is_liked ? '#98fa9a' : '#333'}; 
+           color:${review.is_liked ? '#000' : '#fff'}; 
+           border:none; cursor:pointer; font-size:11px; padding:6px 12px; border-radius:4px; font-weight:800;">
+    ${review.is_liked ? '❤️ LIKED' : '♡ LIKE'}
+</button>
             <button onclick="deleteReview('${review.id}')" 
                 style="background:transparent; border:1px solid #ff4d4d; color:#ff4d4d; cursor:pointer; font-size:11px; padding:5px 10px; border-radius:4px;">
                 DELETE
@@ -217,9 +217,20 @@ function renderReviewOnWall(review, booking) {
 }
 
 // Add these new helper functions at the bottom of admin-bkng.js
-async function toggleLike(reviewId, status) {
-    const { error } = await _supabase.from('reviews').update({ is_liked: status }).eq('id', reviewId);
-    if (!error) fetchBookings();
+async function toggleLike(reviewId, currentStatus) {
+    console.log("Toggling like for:", reviewId, "New Status:", !currentStatus);
+    
+    const { error } = await _supabase
+        .from('reviews')
+        .update({ is_liked: !currentStatus }) // Flips the boolean
+        .eq('id', reviewId);
+
+    if (error) {
+        console.error("Like Error:", error.message);
+        alert("Failed to like: " + error.message);
+    } else {
+        fetchBookings(); // Refresh the UI to show the heart
+    }
 }
 
 async function deleteReview(reviewId) {
