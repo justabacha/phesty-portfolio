@@ -299,7 +299,7 @@ input[type="time"] {
 }
 
 .log-card {
-    background: #0d0d0d;
+    background: #0d0d0d3b;
     border-radius: 15px;
     padding: 20px;
     border: 1px solid #1a1a1a;
@@ -327,7 +327,7 @@ input[type="time"] {
     border-bottom-left-radius: 15px;
     padding-left: 20px; 
     position: relative; 
-    background: #080808; 
+    background: #3f3f3f3a; 
     padding: 20px; 
     border-radius: 12px;
     box-shadow: -10px 0px 20px -10px rgba(152, 250, 154, 0.2); /* Subtle glow */
@@ -341,4 +341,35 @@ input[type="time"] {
 
 @keyframes blink-red {
     50% { border-color: transparent; box-shadow: 0 0 10px #ff4d4d; }
+}
+
+/* Default star color (Off) */
+.star-rating label {
+    color: #444 !important;
+    transition: color 0.2s ease;
+}
+
+/* 1-2 Stars: RED */
+.star-rating input[value="1"]:checked ~ label,
+.star-rating input[value="2"]:checked ~ label,
+.star-rating label:hover[for*="star-1"],
+.star-rating label:hover[for*="star-2"],
+.star-rating label:hover[for*="star-2"] ~ label {
+    color: #ff4d4d !important;
+}
+
+/* 3 Stars: GOLDEN */
+.star-rating input[value="3"]:checked ~ label,
+.star-rating label:hover[for*="star-3"],
+.star-rating label:hover[for*="star-3"] ~ label {
+    color: #ffeb3b !important;
+}
+
+/* 4-5 Stars: SIGNATURE GREEN */
+.star-rating input[value="4"]:checked ~ label,
+.star-rating input[value="5"]:checked ~ label,
+.star-rating label:hover[for*="star-4"],
+.star-rating label:hover[for*="star-5"],
+.star-rating label:hover[for*="star-5"] ~ label {
+    color: #98fa9a !important;
 }

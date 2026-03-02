@@ -19,7 +19,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function fetchBookings() {
-    const { data, error } = await _supabase.from('bookings').select('*').order('created_at', { ascending: false });
+    // Fetch bookings and join with reviews
+    const { data, error } = await _supabase
+        .from('bookings')
+        .select('*, reviews(*)').order('created_at', { ascending: false });
     if (error) return console.error("DB Error:", error);
 
     const viewMonth = currentViewDate.getMonth();
@@ -35,20 +38,37 @@ async function fetchBookings() {
 
     renderCalendar(confirmedForMonth, viewMonth, viewYear);
 
-    // Clear Lists
-    const lists = ['pendingList', 'approvedList', 'declinedList', 'completedList', 'archiveList'];
+  // Clear Lists
+    const lists = ['pendingList', 'approvedList', 'declinedList', 'completedList', 'archiveList', 'reviewWall'];
     lists.forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = ""; });
-
-    // Build UI
+    
+   // Build UI
     data.forEach(booking => {
+        // 1. Process Reviews for the Wall
+        if (booking.reviews && booking.reviews.length > 0) {
+            booking.reviews.forEach(rev => renderReviewOnWall(rev, booking));
+        }
+
+        // 2. Process Bookings
         if (booking.status === 'completed') {
             renderCompletedRow(booking);
         } else {
-            const card = createCard(booking);
-            if (booking.status === 'pending') document.getElementById('pendingList').appendChild(card);
-            else if (booking.status === 'confirmed') document.getElementById('approvedList').appendChild(card);
-            else if (booking.status === 'declined') document.getElementById('declinedList').appendChild(card);
-            else if (booking.status === 'archived') document.getElementById('archiveList').appendChild(card);
+            const card = createCard(booking); // This uses your template logic
+            
+            let containerId = '';
+            if (booking.status === 'pending') containerId = 'pendingList';
+            else if (booking.status === 'confirmed') containerId = 'approvedList';
+            else if (booking.status === 'declined') containerId = 'declinedList';
+            else if (booking.status === 'archived') containerId = 'archiveList';
+
+            if (containerId) {
+                const container = document.getElementById(containerId);
+                if (container) {
+                    container.appendChild(card);
+                } else {
+                    console.error(`Target container #${containerId} not found in HTML!`);
+                }
+            }
         }
     });
 }
@@ -105,6 +125,19 @@ function createCard(b) {
     cardDiv.querySelector('.det-time').textContent = b.booking_time;
     cardDiv.querySelector('.purpose-text').textContent = b.purpose || "No message provided.";
 
+    // --- NEW: Inject Review Info if it exists (For Archive/Completed) ---
+    if (b.reviews && b.reviews.length > 0) {
+        const rev = b.reviews[0];
+        const starColor = rev.rating <= 2 ? "#ff4d4d" : rev.rating === 3 ? "#ffeb3b" : "#98fa9a";
+        const revHTML = `
+            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                <p style="color: ${starColor}; font-size: 11px; margin-bottom: 4px;">Rating: ${"★".repeat(rev.rating)}</p>
+                <p style="color: #bbb; font-size: 11px; font-style: italic;">"${rev.comment}"</p>
+            </div>
+        `;
+        cardDiv.querySelector('.deep-details').insertAdjacentHTML('beforeend', revHTML);
+    }
+
     cardDiv.querySelector('.card-main').onclick = () => cardDiv.classList.toggle('active');
 
     const actions = cardDiv.querySelector('.ledger-actions');
@@ -122,7 +155,8 @@ function createCard(b) {
         actions.querySelector('.btn-wa').onclick = () => openWA(b);
         actions.querySelector('.btn-purge').onclick = () => deleteEntry(b.id);
     } else if (b.status === 'archived') {
-        actions.innerHTML = `<button class="btn-purge">DELETE</button>`;
+        // Boosted button visibility for the archive section
+        actions.innerHTML = `<button class="btn-purge" style="background: #ff4d4d; color: white; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">DELETE PERMANENTLY</button>`;
         actions.querySelector('.btn-purge').onclick = () => deleteEntry(b.id);
     }
 
@@ -132,15 +166,66 @@ function createCard(b) {
 function renderCompletedRow(b) {
     const tbody = document.getElementById('completedList');
     if(!tbody) return;
+
     const row = document.createElement('tr');
     row.innerHTML = `
         <td>${b.client_name}</td>
         <td>${b.client_phone}</td>
         <td>${b.booking_date}</td>
-        <td><button class="arch-btn" style="background: #333; color: #ff4d4d; border: 1px solid #ff4d4d44; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 10px;">ARCHIVE</button></td>
+        <td>
+            <button class="arch-btn" onclick="updateStatus('${b.id}', 'archived')" style="background: #333; color: #ff4d4d; border: 1px solid #ff4d4d44; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 10px;">ARCHIVE</button>
+        </td>
     `;
-    row.querySelector('.arch-btn').onclick = () => updateStatus(b.id, 'archived');
     tbody.appendChild(row);
+}
+
+function renderReviewOnWall(review, booking) {
+    const wall = document.getElementById('reviewWall');
+    if (!wall) return;
+
+    // Fix: Prioritize name from booking object if review.client_name is missing
+    const displayName = booking.client_name || review.client_name || "Guest";
+    const revCard = document.createElement('div');
+    
+    // Applying the soft layer style directly to ensure it works
+    revCard.className = "review-admin-card glass-vibe"; 
+    revCard.style.cssText = "background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 12px; margin-bottom: 10px; backdrop-filter: blur(10px);";
+
+    const stars = "★".repeat(review.rating) + "☆".repeat(5 - review.rating);
+    const starColor = review.rating <= 2 ? "#ff4d4d" : review.rating === 3 ? "#ffeb3b" : "#98fa9a";
+
+    revCard.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <strong style="color:#98fa9a; font-size: 14px; text-transform: uppercase;">${displayName}</strong>
+            <span style="color:${starColor}; font-size:14px;">${stars}</span>
+        </div>
+        <p style="color:#ffffff; font-size:13px; font-weight: 500; margin:5px 0; line-height:1.4;">${review.comment}</p>
+        <div style="display:flex; gap:12px; margin-top:12px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:10px;">
+            <button onclick="toggleLike('${review.id}', ${!review.is_liked})" 
+                style="background:${review.is_liked ? '#98fa9a' : '#333'}; 
+                       color:${review.is_liked ? '#000' : '#fff'}; 
+                       border:none; cursor:pointer; font-size:11px; padding:6px 12px; border-radius:4px; font-weight:800; transition: 0.3s;">
+                ${review.is_liked ? '❤️ LIKED' : '♡ LIKE'}
+            </button>
+            <button onclick="deleteReview('${review.id}')" 
+                style="background:transparent; border:1px solid #ff4d4d; color:#ff4d4d; cursor:pointer; font-size:11px; padding:5px 10px; border-radius:4px;">
+                DELETE
+            </button>
+        </div>
+    `;
+    wall.appendChild(revCard);
+}
+
+// Add these new helper functions at the bottom of admin-bkng.js
+async function toggleLike(reviewId, status) {
+    const { error } = await _supabase.from('reviews').update({ is_liked: status }).eq('id', reviewId);
+    if (!error) fetchBookings();
+}
+
+async function deleteReview(reviewId) {
+    if(!confirm("Remove this review from your wall?")) return;
+    await _supabase.from('reviews').delete().eq('id', reviewId);
+    fetchBookings();
 }
 
 async function updateStatus(id, newStatus) {
