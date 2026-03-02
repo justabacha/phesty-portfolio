@@ -1,54 +1,76 @@
 // notifications.js - Root Directory
 
-// 1. Initialize Realtime Subscriptions
 const setupRealtimeNotifications = () => {
-    console.log("Ghost Layer: Notification System Active...");
+    console.log("Ghost Layer: Universal Notification System Active...");
 
-    // Listen for EVERYTHING in the reviews table
     _supabase
-        .channel('schema-db-changes')
+        .channel('phesty-studio-core')
+        // 1. Listen for Booking Status & Likes (Client Side)
         .on('postgres_changes', 
-            { event: 'UPDATE', schema: 'public', table: 'reviews' }, 
+            { event: 'UPDATE', schema: 'public', table: 'bookings' }, 
             (payload) => {
                 const data = payload.new;
-                // Only notify if Phestone liked it
-                if (data.is_liked) {
-                    showToast("❤️ Phestone loved your review!", "booking.html");
+                if (data.status === 'confirmed') {
+                    showToast("✅ Phestone just confirmed your session!", "booking.html");
+                } else if (data.status === 'completed') {
+                    showToast("📸 Mission Complete! Leave a review.", "booking.html");
                 }
             }
         )
+        // 2. Listen for Review Likes (Client Side)
+        .on('postgres_changes', 
+            { event: 'UPDATE', schema: 'public', table: 'reviews' }, 
+            (payload) => {
+                if (payload.new.is_liked) {
+                    showToast("❤️ Phestone loved your comment!", "booking.html");
+                }
+            }
+        )
+        // 3. Listen for New Bookings & Reviews (Admin Side - Phestone)
         .on('postgres_changes', 
             { event: 'INSERT', schema: 'public', table: 'bookings' }, 
             (payload) => {
-                // This is for YOU when you are on the admin side
-                showToast("🔥 New Session Request Received!", "admin-ledger.html");
+                showToast(`🔥 New Request: ${payload.new.client_name}`, "admin-ledger.html");
+            }
+        )
+        .on('postgres_changes', 
+            { event: 'INSERT', schema: 'public', table: 'reviews' }, 
+            (payload) => {
+                showToast(`💬 New Review from ${payload.new.client_name}`, "admin-ledger.html");
+            }
+        )
+        // 4. Listen for Social Hits (Followers & Photo Likes)
+        .on('postgres_changes', 
+            { event: 'INSERT', schema: 'public', table: 'followers' }, 
+            (payload) => {
+                showToast("👤 You got a new follower!", "index.html");
             }
         )
         .subscribe();
 };
 
-// 2. The Glassmorphism Toast Creator
 function showToast(message, linkUrl) {
+    // Check if a toast already exists to prevent stacking clutter
+    const existing = document.querySelector('.glass-toast');
+    if (existing) existing.remove();
+
     const toast = document.createElement('div');
     toast.className = 'glass-toast';
     
-    // Adding the Quick Action Button inside the toast
     toast.innerHTML = `
         <div style="display:flex; align-items:center; gap:12px;">
             <span class="pulse-icon"></span>
             <div style="flex:1;">
-                <p style="margin:0; font-size:12px; font-weight:700;">${message}</p>
+                <p style="margin:0; font-size:12px; font-weight:800; letter-spacing:0.5px;">${message}</p>
             </div>
-            <a href="${linkUrl}" style="background:#98fa9a; color:#000; padding:5px 10px; border-radius:4px; font-size:10px; font-weight:900; text-decoration:none;">VIEW</a>
-            <span onclick="this.parentElement.parentElement.remove()" style="cursor:pointer; opacity:0.5; font-size:14px;">×</span>
+            <a href="${linkUrl}" style="background:#98fa9a; color:#000; padding:6px 12px; border-radius:4px; font-size:10px; font-weight:900; text-decoration:none; text-transform:uppercase;">VIEW</a>
+            <span onclick="this.closest('.glass-toast').remove()" style="cursor:pointer; opacity:0.5; font-size:18px; padding-left:5px;">&times;</span>
         </div>
     `;
 
     document.body.appendChild(toast);
-
-    // Auto-remove after 8 seconds
-    setTimeout(() => { if(toast) toast.remove(); }, 8000);
+    setTimeout(() => { if(toast) toast.remove(); }, 10000);
 }
 
-// Initialize when the script loads
-setupRealtimeNotifications();
+// Start Listening
+document.addEventListener('DOMContentLoaded', setupRealtimeNotifications);
