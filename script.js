@@ -20,15 +20,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeFollowBtn = document.querySelector('.close-follow');
     const confirmFollowBtn = document.getElementById('confirmFollowBtn');
 
-    if (localStorage.getItem('phestyFollowed') === 'true') {
-        if (openFollowBtn) openFollowBtn.style.display = 'none';
-    } else {
-        setTimeout(() => {
-            if (localStorage.getItem('phestyFollowed') !== 'true' && followModal) {
-                followModal.style.display = 'flex';
-            }
-        }, 120000); // 2 minutes
+   // --- FOLLOW SYSTEM LOGIC (REPAIRED) ---
+const checkFollowStatus = async () => {
+    const savedToken = localStorage.getItem('phesty_follow_token');
+    
+    if (savedToken) {
+        // Ask Supabase: Does this token actually exist?
+        const { data, error } = await _supabase
+            .from('followers')
+            .select('id')
+            .eq('notification_token', savedToken)
+            .single();
+
+        if (data && !error) {
+            if (openFollowBtn) openFollowBtn.style.display = 'none';
+            return; // They are a verified follower
+        }
     }
+    
+    // If no token or token not in DB, show the button and timer
+    if (openFollowBtn) openFollowBtn.style.display = 'block';
+    localStorage.removeItem('phestyFollowed');
+    localStorage.removeItem('phesty_follow_token');
+
+    setTimeout(() => {
+        if (followModal) followModal.style.display = 'flex';
+    }, 120000); 
+};
+
+checkFollowStatus(); // Run the check immediately
 
     if (openFollowBtn) openFollowBtn.onclick = (e) => { e.preventDefault(); followModal.style.display = 'flex'; };
     if (closeFollowBtn) closeFollowBtn.onclick = () => followModal.style.display = 'none';
@@ -42,12 +62,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const token = 'token-' + Math.random().toString(36).substr(2, 9);
             const { error } = await _supabase.from('followers').insert([{ fan_name: name, notification_token: token }]);
 
-            if (!error) {
-                localStorage.setItem('phestyFollowed', 'true');
-                alert(`Thanks for joining, ${name}!`);
-                followModal.style.display = 'none';
-                if (openFollowBtn) openFollowBtn.style.display = 'none';
-            }
+           if (!error) {
+    localStorage.setItem('phestyFollowed', 'true');
+    localStorage.setItem('phesty_follow_token', token); // Save the token for verification
+    alert(`Thanks for joining, ${name}!`);
+    followModal.style.display = 'none';
+    if (openFollowBtn) openFollowBtn.style.display = 'none';
+}
             confirmFollowBtn.innerText = "Stay Tuned";
         };
     }
