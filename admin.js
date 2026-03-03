@@ -20,6 +20,14 @@ async function checkUser() {
     }
 }
 checkUser();
+// --- ADMIN LIVE UPDATER ---
+_supabase.channel('admin-dashboard')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'photos' }, () => loadManagementList())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'followers' }, () => loadFollowers())
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bookings' }, () => {
+        if (typeof loadAdminBookings === 'function') loadAdminBookings();
+    })
+    .subscribe();
 
 // --- 2. THE UPLOAD ---
 async function handleUpload() {

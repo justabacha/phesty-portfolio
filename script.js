@@ -2,7 +2,20 @@
 const SUPABASE_URL = 'https://lrlfnfuymbjdxixlttmk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_jddfRqXC9UkFaUOQ0n2O-Q_slOWTPIo'; 
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+// --- GLOBAL REALTIME SYNC (No Refresh Needed) ---
+_supabase.channel('global-sync')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'photos' }, (payload) => {
+        console.log("Change detected, updating UI...");
+        if (window.location.pathname.includes('portfolio.html')) loadFullPortfolio();
+        if (window.location.pathname.includes('gallery.html')) {
+             const cat = new URLSearchParams(window.location.search).get('type') || 'street';
+             loadGallery(cat);
+        }
+    })
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'followers' }, () => {
+        if (typeof checkFollowStatus === 'function') checkFollowStatus();
+    })
+    .subscribe();
 // 2. UNIFIED DOM CONTENT LOADED
 document.addEventListener('DOMContentLoaded', () => {
     // --- Contact Modal Logic ---
@@ -196,26 +209,21 @@ function handlePhotoClick(e, src, photoId) {
 }
 
 async function triggerLike(photoId, event) {
-   // Check if already liked to prevent double database calls, but we still allow the UI to "pop"
     const alreadyLiked = localStorage.getItem(`liked_${photoId}`) === 'true';
-    // 1. Mark as liked locally
-    localStorage.setItem(`liked_${photoId}`, 'true');
-    
-// 2. Change heart color to red IMMEDIATELY
     const heartEl = document.getElementById(`heart-${photoId}`);
+    
+    // UI Update (Instant Speed)
     if (heartEl) {
         heartEl.classList.add('active');
-        heartEl.style.color = '#ff4d4d'; // Instant red
-        heartEl.style.transform = 'scale(1.4)'; // Instant pop
+        heartEl.style.color = '#ff4d4d';
+        heartEl.style.transform = 'scale(1.4)';
         setTimeout(() => heartEl.style.transform = 'scale(1)', 200);
     }
-
-    // 3. Show the burst animation
     showHeartAnimation(event.pageX, event.pageY);
 
-    // 4. Update Database only if they haven't liked it before
     if (!alreadyLiked) {
         localStorage.setItem(`liked_${photoId}`, 'true');
+        // FIX: Match the column name your admin uses (likes_count)
         await _supabase.rpc('increment_likes', { row_id: photoId });
     }
 }
